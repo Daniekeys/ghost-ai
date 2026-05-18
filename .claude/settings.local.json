@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\PC\\\\Documents\\\\ghost-ai\\\\app\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(npx shadcn@latest init --yes)",
+      "Bash(yes \"\")"
+    ]
+  }
+}
