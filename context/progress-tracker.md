@@ -19,6 +19,10 @@ Update this file whenever the current phase, active feature, or implementation s
   - lucide-react installed (^1.16.0)
   - lib/utils.ts with cn() helper (clsx + tailwind-merge)
   - globals.css: dark-only theme — project tokens (--bg-base, --accent-primary, etc.) + shadcn vars aligned to dark palette, mapped via @theme inline; dark class on <html>
+- Feature 02: Editor Chrome
+  - `components/editor/editor-navbar.tsx` — fixed top navbar (h-14, z-50), left toggle with PanelLeftOpen/PanelLeftClose, center + right reserved
+  - `components/editor/project-sidebar.tsx` — fixed overlay sidebar (top-14, z-40, w-72), slides in from left, tabs (My Projects / Shared) with empty states, New Project CTA at bottom
+  - Dialog pattern ready for future use via existing `components/ui/dialog.tsx` and project color tokens
 
 ## In Progress
 
