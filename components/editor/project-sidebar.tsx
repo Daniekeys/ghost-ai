@@ -13,11 +13,13 @@ interface ProjectSidebarProps {
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
   return (
     <aside
+      aria-hidden={!isOpen}
+      inert={!isOpen}
       className={cn(
         "fixed top-14 left-0 bottom-0 z-40 w-72 flex flex-col",
         "bg-elevated border-r border-surface-border",
         "transition-transform duration-300 ease-in-out",
-        !isOpen && "-translate-x-full"
+        !isOpen && "-translate-x-full pointer-events-none"
       )}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border shrink-0">
