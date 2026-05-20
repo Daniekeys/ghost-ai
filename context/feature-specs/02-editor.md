@@ -1,47 +1,48 @@
-We need the base chrome components that frame every editor screen -  the top navbar and the left sidebar shell. These will be reused and extended in every chapter that follows. 
+We need the base chrome components that frame every editor screen - the top navbar and the left sidebar shell. These will be reused and extended in every chapter that follows.
 
-### Editor Navbar 
+### Editor Navbar
 
-Create `components/editor/editor-navbar.tsx`. 
+Create `components/editor/editor-navbar.tsx`.
 
-Requirements: 
+Requirements:
 
--fixed-height top navbar
--left, center and right sections
--left section contains the sidebar toggle button
+- fixed-height top navbar
+- left, center and right sections
+- left section contains the sidebar toggle button
 - use `PanelLeftOpen` / `PanelLeftClose` icons based on the sidebar state
-- right section stays empty for now 
-- dark background with subtle bottom border 
+- right section stays empty for now
+- dark background with subtle bottom border
 
-### Project Sidebar 
+### Project Sidebar
 
-Create `components/editor/project-sidebar.tsx`. 
+Create `components/editor/project-sidebar.tsx`.
 
-Requirements: 
-- sidebar should float above the editor canvas 
-- opening it should not push page content 
-- slides in from the left 
-- accepts `isOpen` prop 
-- header with `Projects` title + close button 
-- shadcn `Tabs`: 
-- My Projects 
-- Shared 
-- both tabs show empty placeholder state 
-- full-width `New Project` button at the bottom with `Plus` icon 
+Requirements:
+- sidebar should float above the editor canvas
+- opening it should not push page content
+- slides in from the left
+- accepts `isOpen` prop
+- header with `Projects` title + close button
+- shadcn `Tabs`:
+- My Projects
+- Shared
+- both tabs show empty placeholder state
+- full-width `New Project` button at the bottom with `Plus` icon
 
-### Dialog Pattern 
+### Dialog Pattern
 
-Use the existing color tokens from `global.css` for dialog styling. 
+Use the existing color tokens from `global.css` for dialog styling.
 
-Support: 
+Support:
 
-- title 
-- description 
-- footer actions 
+- title
+- description
+- footer actions
 
-Do not build actual dialogs yet. 
+Do not build actual dialogs yet.
 
-### Check when done 
+### Check when done
+
 - new components compile without typescript errors
-- no lint errors 
-- dialog pattern is ready for future use 
+- no lint errors
+- dialog pattern is ready for future use
