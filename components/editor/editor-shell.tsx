@@ -21,7 +21,7 @@ export function EditorShell({ children }: EditorShellProps) {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
-      <main className="pt-14 h-screen bg-base">
+      <main className="pt-14 min-h-[calc(100vh-3.5rem)] bg-base">
         {children}
       </main>
     </>
