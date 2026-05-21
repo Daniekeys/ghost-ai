@@ -1,7 +1,12 @@
-export default function Page() {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      ghost ai
-    </div>
-  )
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+
+export default async function Page() {
+  const { userId } = await auth()
+
+  if (userId) {
+    redirect('/editor')
+  } else {
+    redirect('/sign-in')
+  }
 }
