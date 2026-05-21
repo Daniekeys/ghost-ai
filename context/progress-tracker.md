@@ -26,7 +26,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Feature 03: Authentication (Clerk)
   - `@clerk/nextjs` (^7.3.7) and `@clerk/ui` (^1.12.1) installed
   - `proxy.ts` at project root — `clerkMiddleware` with `createRouteMatcher`; protects all routes except sign-in/sign-up; uses `proxy` export (Next.js 16 convention, renamed from `middleware`)
-  - `ClerkProvider` wraps root layout with `@clerk/ui/themes` `dark` base theme; appearance overrides via CSS custom property references (no hardcoded colors)
+  - `ClerkProvider` wraps app content inside the root layout `<body>` with `@clerk/ui/themes` `dark` base theme; appearance overrides via CSS custom property references (no hardcoded colors)
   - `EditorShell` moved out of root layout into `app/editor/layout.tsx`
   - `app/page.tsx` — server component: redirects authenticated users to `/editor`, unauthenticated to `/sign-in`
   - `app/sign-in/[[...sign-in]]/page.tsx` — two-panel layout (left: logo + tagline + feature list; right: Clerk `<SignIn />`); form-only on small screens
