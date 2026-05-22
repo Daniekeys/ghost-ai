@@ -19,28 +19,28 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider
-      appearance={{
-        theme: dark,
-        variables: {
-          colorBackground: 'var(--bg-surface)',
-          colorInput: 'var(--bg-elevated)',
-          colorInputForeground: 'var(--text-primary)',
-          colorForeground: 'var(--text-primary)',
-          colorMutedForeground: 'var(--text-secondary)',
-          colorPrimary: 'var(--accent-primary)',
-          colorDanger: 'var(--state-error)',
-          colorSuccess: 'var(--state-success)',
-          colorNeutral: 'var(--text-muted)',
-          borderRadius: '0.75rem',
-        },
-      }}
-    >
-      <html lang="en" className={cn("dark", geistSans.variable, geistMono.variable)}>
-        <body>
+    <html lang="en" className={cn("dark", geistSans.variable, geistMono.variable)}>
+      <body>
+        <ClerkProvider
+          appearance={{
+            theme: dark,
+            variables: {
+              colorBackground: 'var(--bg-surface)',
+              colorInput: 'var(--bg-elevated)',
+              colorInputForeground: 'var(--text-primary)',
+              colorForeground: 'var(--text-primary)',
+              colorMutedForeground: 'var(--text-secondary)',
+              colorPrimary: 'var(--accent-primary)',
+              colorDanger: 'var(--state-error)',
+              colorSuccess: 'var(--state-success)',
+              colorNeutral: 'var(--text-muted)',
+              borderRadius: '0.75rem',
+            },
+          }}
+        >
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   )
 }
