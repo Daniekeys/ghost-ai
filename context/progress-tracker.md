@@ -23,6 +23,15 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/editor-navbar.tsx` — fixed top navbar (h-14, z-50), left toggle with PanelLeftOpen/PanelLeftClose, center + right reserved
   - `components/editor/project-sidebar.tsx` — fixed overlay sidebar (top-14, z-40, w-72), slides in from left, tabs (My Projects / Shared) with empty states, New Project CTA at bottom
   - Dialog pattern ready for future use via existing `components/ui/dialog.tsx` and project color tokens
+- Feature 04: Project Dialogs & Editor Home
+  - `app/editor/page.tsx` — home screen: heading, description, New Project button (client component, consumes context)
+  - `hooks/use-project-dialogs.ts` — dialog state, form state, loading state, mock projects, slug derivation
+  - `components/editor/project-dialogs-provider.tsx` — React context exposing `projects`, `openCreateDialog`, `openRenameDialog`, `openDeleteDialog`
+  - `components/editor/dialogs/create-project-dialog.tsx` — name input + live slug preview, Enter submits
+  - `components/editor/dialogs/rename-project-dialog.tsx` — prefilled input, auto-focus, Enter submits
+  - `components/editor/dialogs/delete-project-dialog.tsx` — destructive confirmation, no input
+  - `components/editor/project-sidebar.tsx` — project list, per-item rename/delete (owned only), mobile backdrop scrim
+  - `components/editor/editor-shell.tsx` — wires hook + provides context + renders dialogs + mobile scrim
 - Feature 03: Authentication (Clerk)
   - `@clerk/nextjs` (^7.3.7) and `@clerk/ui` (^1.12.1) installed
   - `proxy.ts` at project root — `clerkMiddleware` with `createRouteMatcher`; protects all routes except sign-in/sign-up; uses `proxy` export (Next.js 16 convention, renamed from `middleware`)
@@ -42,7 +51,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Project creation and workspace navigation
+- (TBD)
 
 ## Open Questions
 
