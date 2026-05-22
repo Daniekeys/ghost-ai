@@ -41,7 +41,7 @@ export function CreateProjectDialog({
           <div className="space-y-1.5">
             <label
               htmlFor="create-project-name"
-              className="text-sm text-copy-secondary"
+              className="text-sm text-copy-secondary "
             >
               Project name
             </label>
@@ -51,6 +51,7 @@ export function CreateProjectDialog({
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               autoFocus
+              className=" text-white mt-2"
               onKeyDown={(e) => e.key === "Enter" && name.trim() && onConfirm()}
             />
           </div>
