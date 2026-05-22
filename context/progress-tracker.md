@@ -45,6 +45,13 @@ Update this file whenever the current phase, active feature, or implementation s
   - `UserButton` added to editor navbar right section
   - `.env.local` updated with `NEXT_PUBLIC_CLERK_SIGN_IN_URL` and `NEXT_PUBLIC_CLERK_SIGN_UP_URL`
   - `npm run build` passes
+- Feature 05: Prisma Data Models & Client
+  - `prisma/models/project.prisma` — `Project` (ownerId, name, description?, status enum DRAFT/ARCHIVED, canvasJsonPath?, timestamps, indexes on ownerId and createdAt) and `ProjectCollaborator` (project relation with cascade delete, collaboratorEmail, createdAt, unique on projectId+email, indexes on email and projectId+createdAt)
+  - `lib/prisma.ts` — cached singleton; branches on `DATABASE_URL`: `prisma+postgres://` prefix → Accelerate via `accelerateUrl` + `withAccelerate()`; otherwise → `@prisma/adapter-pg` direct connection; cached on `global.prismaGlobal` in development
+  - Migration `20260522085005_init` applied to Prisma Postgres (pooled.db.prisma.io)
+  - Client generated to `app/generated/prisma/`
+  - Installed: `@prisma/client`, `@prisma/adapter-pg`, `pg`, `@prisma/extension-accelerate`, `dotenv`
+  - `npm run build` passes
 
 ## In Progress
 
