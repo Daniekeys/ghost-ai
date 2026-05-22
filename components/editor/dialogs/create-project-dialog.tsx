@@ -58,7 +58,7 @@ export function CreateProjectDialog({
 
           {name.trim() && (
             <p className="text-xs font-mono text-copy-muted">
-              slug:{" "}
+              room ID:{" "}
               <span className="text-copy-secondary">{slug || "—"}</span>
             </p>
           )}

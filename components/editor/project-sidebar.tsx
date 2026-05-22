@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectDialogsContext } from "./project-dialogs-provider"
-import type { Project } from "@/hooks/use-project-dialogs"
+import type { Project } from "@/lib/projects"
 
 interface ProjectSidebarProps {
   isOpen: boolean

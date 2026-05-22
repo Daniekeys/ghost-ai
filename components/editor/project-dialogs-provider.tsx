@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext } from "react"
-import type { Project } from "@/hooks/use-project-dialogs"
+import type { Project } from "@/lib/projects"
 
 interface ProjectDialogsContextValue {
   projects: Project[]

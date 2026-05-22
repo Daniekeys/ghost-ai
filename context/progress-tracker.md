@@ -47,10 +47,25 @@ Update this file whenever the current phase, active feature, or implementation s
   - `npm run build` passes
 - Feature 05: Prisma Data Models & Client
   - `prisma/models/project.prisma` — `Project` (ownerId, name, description?, status enum DRAFT/ARCHIVED, canvasJsonPath?, timestamps, indexes on ownerId and createdAt) and `ProjectCollaborator` (project relation with cascade delete, collaboratorEmail, createdAt, unique on projectId+email, indexes on email and projectId+createdAt)
-  - `lib/prisma.ts` — cached singleton; branches on `DATABASE_URL`: `prisma+postgres://` prefix → Accelerate via `accelerateUrl` + `withAccelerate()`; otherwise → `@prisma/adapter-pg` direct connection; cached on `global.prismaGlobal` in development
+  - `lib/prisma.ts` — cached singleton; branches on `DATABASE_URL`: `prisma+postgres://` prefix → Accelerate via `accelerateUrl` + `withAccelerate()`; otherwise → `@prisma/adapter-pg` direct connection; cached on `global.prismaGlobal` in development; return type pinned to `PrismaClient` to avoid union-type conflicts from `$extends`
   - Migration `20260522085005_init` applied to Prisma Postgres (pooled.db.prisma.io)
   - Client generated to `app/generated/prisma/`
   - Installed: `@prisma/client`, `@prisma/adapter-pg`, `pg`, `@prisma/extension-accelerate`, `dotenv`
+  - `npm run build` passes
+- Feature 06: Project REST APIs
+  - `app/api/projects/route.ts` — `GET` lists the authenticated user's projects (ordered by `createdAt` desc); `POST` creates a project (name defaults to `"Untitled Project"`)
+  - `app/api/projects/[projectId]/route.ts` — `PATCH` renames the project (owner only, name required); `DELETE` deletes the project (owner only, returns 204)
+  - Auth: all routes return `401` for unauthenticated requests; mutations return `403` for non-owners
+  - `npm run build` passes
+- Feature 07: Wire Editor Home to Real APIs
+  - `lib/projects.ts` — `getOwnedProjects(userId)` and `getSharedProjects(userEmail)` server-side helpers; `Project` interface (`id`, `name`, `isOwned`)
+  - `hooks/use-project-actions.ts` — client hook managing dialog state and real API mutations; create calls `POST /api/projects` then `router.push(/editor/{id})`; rename calls `PATCH` then `router.refresh()`; delete calls `DELETE` then redirects to `/editor` if active workspace, otherwise `router.refresh()`; async transition via `useTransition`
+  - `components/editor/new-project-button.tsx` — small `"use client"` CTA that consumes dialog context
+  - `app/editor/layout.tsx` — async server component; fetches owned and shared projects via `currentUser()` + helpers; passes both lists to `EditorShell`
+  - `app/editor/page.tsx` — converted to server component; renders static heading + `<NewProjectButton />`
+  - `components/editor/editor-shell.tsx` — accepts `ownedProjects` and `sharedProjects` props; uses `useProjectActions`; merges lists for context
+  - `components/editor/dialogs/create-project-dialog.tsx` — slug preview label updated to "room ID"
+  - All dialog and sidebar components updated to import `Project` from `lib/projects`
   - `npm run build` passes
 
 ## In Progress
@@ -59,7 +74,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- (TBD)
+- None.
 
 ## Open Questions
 
