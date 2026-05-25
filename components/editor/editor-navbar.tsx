@@ -1,8 +1,10 @@
 "use client"
 
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { PanelLeftClose, PanelLeftOpen, Share2, Bot } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UserButton } from "@clerk/nextjs"
+import { cn } from "@/lib/utils"
+import { useWorkspace } from "./workspace-provider"
 
 interface EditorNavbarProps {
   isSidebarOpen: boolean
@@ -10,16 +12,29 @@ interface EditorNavbarProps {
 }
 
 export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarProps) {
+  const {
+    projectName,
+    toggleAiSidebar,
+    isAiSidebarOpen,
+    isWorkspaceMode,
+    isWorkspaceSidebarOpen,
+    toggleWorkspaceSidebar,
+    openShareDialog,
+  } = useWorkspace()
+
+  const sidebarOpen = isWorkspaceMode ? isWorkspaceSidebarOpen : isSidebarOpen
+  const handleToggleSidebar = isWorkspaceMode ? toggleWorkspaceSidebar : onToggleSidebar
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-3 bg-surface border-b border-surface-border">
       <div className="flex items-center">
         <Button
           variant="ghost"
           size="icon"
-          onClick={onToggleSidebar}
-          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+          onClick={handleToggleSidebar}
+          aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
-          {isSidebarOpen ? (
+          {sidebarOpen ? (
             <PanelLeftClose className="size-5" />
           ) : (
             <PanelLeftOpen className="size-5" />
@@ -27,9 +42,43 @@ export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarPro
         </Button>
       </div>
 
-      <div className="flex-1" />
+      <div className="flex-1 flex items-center justify-center">
+        {projectName && (
+          <div className="flex flex-col items-center leading-tight">
+            <span className="text-sm font-semibold text-copy-primary truncate max-w-xs">
+              {projectName}
+            </span>
+            {isWorkspaceMode && (
+              <span className="text-[11px] text-copy-muted">Workspace</span>
+            )}
+          </div>
+        )}
+      </div>
 
-      <div className="flex items-center pr-1">
+      <div className="flex items-center gap-1.5 pr-1">
+        {projectName && (
+          <>
+            <Button variant="ghost" size="sm" aria-label="Share project" onClick={openShareDialog}>
+              <Share2 className="size-4" />
+              Share
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleAiSidebar}
+              aria-label="Toggle AI sidebar"
+              className={cn(
+                "gap-1.5",
+                isAiSidebarOpen
+                  ? "bg-ai text-white hover:bg-ai/90"
+                  : "hover:bg-subtle"
+              )}
+            >
+              <Bot className="size-4" />
+              AI
+            </Button>
+          </>
+        )}
         <UserButton />
       </div>
     </header>

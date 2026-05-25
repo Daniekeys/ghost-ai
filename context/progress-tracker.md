@@ -67,6 +67,26 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/dialogs/create-project-dialog.tsx` — slug preview label updated to "room ID"
   - All dialog and sidebar components updated to import `Project` from `lib/projects`
   - `npm run build` passes
+- Feature 08: Editor Workspace Shell
+  - `lib/project-access.ts` — `getCurrentIdentity()` returns `{ userId, userEmail }` from Clerk; `checkProjectAccess(projectId, userId, userEmail)` queries project + collaborators, returns `{ project, isOwner }` or `null`
+  - `components/editor/access-denied.tsx` — centered layout (lock icon, message, link back to `/editor`); used for missing or unauthorized projects
+  - `components/editor/workspace-provider.tsx` — React context (`WorkspaceProvider`, `useWorkspace`) providing `projectName`, `setProjectName`, `isAiSidebarOpen`, `toggleAiSidebar`; wraps EditorShell content
+  - `components/editor/editor-shell.tsx` — now wraps all children in `WorkspaceProvider`
+  - `components/editor/editor-navbar.tsx` — reads `useWorkspace()`; shows project name in center + Share button + AI toggle when `projectName` is set
+  - `components/editor/project-sidebar.tsx` — `ProjectItem` uses `usePathname()` to highlight the active room (`bg-accent-dim text-brand`)
+  - `components/editor/workspace-canvas.tsx` — client component; sets `projectName` in context on mount (cleans up on unmount); renders canvas placeholder + conditional AI sidebar placeholder
+  - `app/editor/[roomId]/page.tsx` — server component; unauthenticated → redirect `/sign-in`; no access / not found → `<AccessDenied />`; renders `<WorkspaceCanvas projectName={...} />`
+  - `hooks/use-project-actions.ts` — delete handler now reads `params.roomId` (was `projectId`) to detect active workspace
+  - `npm run build` passes
+- Feature 09: Share Dialog
+  - `app/api/projects/[projectId]/collaborators/route.ts` — `GET` lists collaborators enriched with Clerk display name + avatar; `POST` invites by email (owner only, self-invite blocked, duplicate returns 409)
+  - `app/api/projects/[projectId]/collaborators/[email]/route.ts` — `DELETE` removes collaborator by email (owner only, URL-decoded)
+  - `components/editor/dialogs/share-dialog.tsx` — Dialog with copy-link button (temporary "Copied!" feedback), collaborator list (avatar/initials fallback + name/email), remove button (owner only), invite-by-email form (owner only) with inline error display
+  - `components/editor/workspace-provider.tsx` — extended with `projectId`, `isOwner`, `isShareDialogOpen`, `openShareDialog`, `closeShareDialog`
+  - `components/editor/workspace-canvas.tsx` — accepts `projectId` and `isOwner` props; sets them in context on mount; renders `<ShareDialog />`
+  - `app/editor/[roomId]/page.tsx` — passes `projectId` and `isOwner` to `<WorkspaceCanvas />`
+  - `components/editor/editor-navbar.tsx` — Share button `onClick` calls `openShareDialog()`
+  - `npm run build` passes
 
 ## In Progress
 
@@ -74,7 +94,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- None.
+- Feature 10 and beyond (canvas, Liveblocks, AI generation, etc.).
 
 ## Open Questions
 

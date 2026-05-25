@@ -4,6 +4,7 @@ import { useState } from "react"
 import { EditorNavbar } from "./editor-navbar"
 import { ProjectSidebar } from "./project-sidebar"
 import { ProjectDialogsProvider } from "./project-dialogs-provider"
+import { WorkspaceProvider } from "./workspace-provider"
 import { CreateProjectDialog } from "./dialogs/create-project-dialog"
 import { RenameProjectDialog } from "./dialogs/rename-project-dialog"
 import { DeleteProjectDialog } from "./dialogs/delete-project-dialog"
@@ -39,6 +40,7 @@ export function EditorShell({ children, ownedProjects, sharedProjects }: EditorS
   ]
 
   return (
+    <WorkspaceProvider>
     <ProjectDialogsProvider
       value={{ projects, openCreateDialog, openRenameDialog, openDeleteDialog }}
     >
@@ -89,5 +91,6 @@ export function EditorShell({ children, ownedProjects, sharedProjects }: EditorS
         onClose={closeDialogs}
       />
     </ProjectDialogsProvider>
+    </WorkspaceProvider>
   )
 }
