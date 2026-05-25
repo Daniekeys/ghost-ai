@@ -99,7 +99,7 @@ export function useProjectActions(): UseProjectActionsReturn {
         method: "DELETE",
       })
       if (!res.ok) return
-      const activeProjectId = (params as Record<string, string>)?.projectId
+      const activeProjectId = (params as Record<string, string>)?.roomId
       closeDialogs()
       if (activeProjectId === selectedProject.id) {
         router.push("/editor")
