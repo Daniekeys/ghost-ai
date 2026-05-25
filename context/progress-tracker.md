@@ -88,13 +88,34 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/editor-navbar.tsx` — Share button `onClick` calls `openShareDialog()`
   - `npm run build` passes
 
+- Feature 10: Liveblocks Setup
+  - `@liveblocks/node` (^3.19.3) installed
+  - `liveblocks.config.ts` — global `Liveblocks` interface typed: `Presence` (`cursor: { x, y } | null`, `isThinking: boolean`), `UserMeta` (`id`, `info: { name, avatar, color }`)
+  - `lib/liveblocks.ts` — lazy cached `Liveblocks` node client (`getLiveblocksClient()`); `getCursorColor(userId)` deterministically maps a user ID to one of 12 fixed hex colors via unsigned hash
+  - `app/api/liveblocks-auth/route.ts` — `POST` handler: requires Clerk auth (401), parses `projectId` from body (400), verifies project access via `checkProjectAccess` (403), calls `getOrCreateRoom` (private `defaultAccesses: []`, owner `room:write`), calls `identifyUser` with `name`/`avatar`/`color` in `userInfo`, returns session token
+  - `.env.local` — `LIVEBLOCKS_SECRET_KEY` placeholder added (value must be set from Liveblocks dashboard)
+  - `npm run build` passes
+- Feature 11: Base Canvas
+  - `types/canvas.ts` — `CanvasNodeData` (`label`, `color?`, `shape?`), `CanvasNode` (`Node<CanvasNodeData, "canvasNode">`), `CanvasEdge` (`Edge<CanvasEdgeData, "canvasEdge">`)
+  - `components/editor/canvas/canvas-room.tsx` — `LiveblocksProvider` (auth callback POSTs `projectId: room` to `/api/liveblocks-auth`), `RoomProvider` (initial presence: `cursor: null, isThinking: false`), `ErrorBoundary` + `ClientSideSuspense` with loading/error fallbacks
+  - `components/editor/canvas/canvas-flow.tsx` — `useLiveblocksFlow({ suspense: true, nodes: { initial: [] }, edges: { initial: [] } })`, `ReactFlow` with synced nodes/edges + change handlers, `ConnectionMode.Loose`, `fitView`, `Background` (dots), `MiniMap`, `Cursors`
+  - `components/editor/workspace-canvas.tsx` — canvas placeholder replaced with `<CanvasRoom roomId={projectId} />`
+  - `react-error-boundary` (^6.1.2) installed
+  - `npm run build` passes
+- Feature 12: Shape Panel
+  - `types/canvas.ts` — `CanvasNodeData` extended with `width?: number; height?: number;`
+  - `components/editor/canvas/canvas-node.tsx` — custom `"canvasNode"` renderer; bordered rectangle with centered label, handles on all four sides; respects `data.width`/`data.height` via inline style; highlights border on selection
+  - `components/editor/canvas/shape-panel.tsx` — `ShapePanel` renders inside React Flow `Panel position="bottom-center"`; pill-shaped toolbar with six draggable shape buttons (rectangle, diamond, circle, pill, cylinder, hexagon); `ShapeDragPayload` interface (`shape`, `width`, `height`) serialized to `application/ghost-shape` dataTransfer key; default sizes: rectangle 160×80, diamond 140×120, circle 80×80, pill 160×64, cylinder 100×100, hexagon 120×120
+  - `components/editor/canvas/canvas-flow.tsx` — refactored: outer `CanvasFlow` wraps inner `CanvasFlowInner` in `ReactFlowProvider`; inner component uses `useReactFlow().screenToFlowPosition` for coordinate conversion; `onDragOver` + `onDrop` on wrapper div; reads `application/ghost-shape` payload, creates `CanvasNode` with `type: "canvasNode"`, centered on drop position; node ID: `${shape}-${Date.now()}-${counter}`; `nodeTypes` constant registered at module level; `<ShapePanel />` rendered as React Flow child
+  - `npm run build` passes
+
 ## In Progress
 
 - None.
 
 ## Next Up
 
-- Feature 10 and beyond (canvas, Liveblocks, AI generation, etc.).
+- Feature 13 and beyond (shape-specific visuals, canvas persistence, AI generation, etc.).
 
 ## Open Questions
 
