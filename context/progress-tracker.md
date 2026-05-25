@@ -113,13 +113,19 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/canvas/shape-panel.tsx` — drag ghost preview: `onDragStart` suppresses native browser ghost via transparent 1×1 GIF `setDragImage`; tracks cursor via `document` `dragover` listener (added/removed only while dragging); renders `GhostShape` via `createPortal` to `document.body` at `position: fixed` centered on cursor with `opacity: 0.75`; cleared on `dragend`/`drop`; `GhostShape` mirrors the same SVG/CSS rendering as `CanvasNodeComponent`; drag/drop logic in `canvas-flow.tsx` unchanged
   - `npm run build` passes
 
+- Feature 14: Node Resizing & Inline Label Editing
+  - `components/editor/canvas/canvas-actions-context.tsx` — React context (`CanvasActionsContext`, `useCanvasActions`) exposing `onNodesChange` from `useLiveblocksFlow` to node components
+  - `components/editor/canvas/canvas-flow.tsx` — provides `CanvasActionsContext` wrapping `ReactFlow`; context value memoized via `useMemo`
+  - `components/editor/canvas/canvas-node.tsx` — `NodeResizer` added to all shapes (`isVisible={selected}`, `minWidth=60`, `minHeight=40`, subtle dark-themed handle/line styles); rendering uses `nodeWidth ?? data.width ?? 160` / `nodeHeight ?? data.height ?? 80` so post-resize dimensions are reflected; double-click activates inline textarea editing; `EditingTextarea` positioned `absolute inset-0` over the label, `nodrag nopan nowheel` classes prevent canvas drag/pan/scroll during edit; blur and Enter commit via `NodeReplaceChange` through `onNodesChange`; Escape cancels; label span hidden (`invisible`) while editing
+  - `npm run build` passes
+
 ## In Progress
 
 - None.
 
 ## Next Up
 
-- Feature 14 and beyond (node label editing, canvas persistence, AI generation, etc.).
+- Feature 15 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 

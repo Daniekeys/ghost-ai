@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -17,6 +17,7 @@ import "@liveblocks/react-ui/styles.css";
 import "@liveblocks/react-flow/styles.css";
 import { CanvasNodeComponent } from "./canvas-node";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
+import { CanvasActionsContext } from "./canvas-actions-context";
 import type { CanvasNode, CanvasEdge } from "@/types/canvas";
 
 const nodeTypes: NodeTypes = {
@@ -76,29 +77,33 @@ function CanvasFlowInner() {
     [screenToFlowPosition, onNodesChange],
   );
 
+  const actionsValue = useMemo(() => ({ onNodesChange }), [onNodesChange]);
+
   return (
-    <div
-      className="w-full h-full"
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onDelete={onDelete}
-        nodeTypes={nodeTypes}
-        connectionMode={ConnectionMode.Loose}
-        fitView
+    <CanvasActionsContext.Provider value={actionsValue}>
+      <div
+        className="w-full h-full"
+        onDragOver={onDragOver}
+        onDrop={onDrop}
       >
-        <Background variant={BackgroundVariant.Dots} />
-        <MiniMap />
-        <Cursors />
-        <ShapePanel />
-      </ReactFlow>
-    </div>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onDelete={onDelete}
+          nodeTypes={nodeTypes}
+          connectionMode={ConnectionMode.Loose}
+          fitView
+        >
+          <Background variant={BackgroundVariant.Dots} />
+          <MiniMap />
+          <Cursors />
+          <ShapePanel />
+        </ReactFlow>
+      </div>
+    </CanvasActionsContext.Provider>
   );
 }
 

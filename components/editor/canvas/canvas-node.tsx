@@ -1,13 +1,32 @@
 "use client";
 
-import { Handle, Position } from "@xyflow/react";
-import type { NodeProps } from "@xyflow/react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Handle, Position, NodeResizer, useReactFlow } from "@xyflow/react";
+import type { NodeProps, NodeReplaceChange } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import type { CanvasNode } from "@/types/canvas";
+import { useCanvasActions } from "./canvas-actions-context";
 
 const FILL = "var(--bg-elevated)";
 const STROKE_DEFAULT = "var(--border-default)";
 const STROKE_SELECTED = "var(--accent-primary)";
+
+const MIN_WIDTH = 60;
+const MIN_HEIGHT = 40;
+
+const RESIZER_HANDLE_STYLE: React.CSSProperties = {
+  width: 8,
+  height: 8,
+  background: "var(--bg-elevated)",
+  border: "1.5px solid var(--accent-primary)",
+  borderRadius: 2,
+};
+
+const RESIZER_LINE_STYLE: React.CSSProperties = {
+  borderColor: "var(--accent-primary)",
+  borderWidth: 1,
+  opacity: 0.5,
+};
 
 function Handles() {
   return (
@@ -17,19 +36,6 @@ function Handles() {
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
     </>
-  );
-}
-
-function NodeLabel({ label }: { label: string }) {
-  return (
-    <span
-      className={cn(
-        "text-sm select-none",
-        label ? "text-copy-primary" : "text-copy-faint italic",
-      )}
-    >
-      {label || ""}
-    </span>
   );
 }
 
@@ -97,11 +103,129 @@ function CylinderSvg({ w, h, stroke }: { w: number; h: number; stroke: string })
   );
 }
 
-export function CanvasNodeComponent({ data, selected }: NodeProps<CanvasNode>) {
-  const width = data.width ?? 160;
-  const height = data.height ?? 80;
+function EditingTextarea({
+  nodeId,
+  value,
+  height,
+  onChange,
+  onCommit,
+  onCancel,
+  textareaRef,
+}: {
+  nodeId: string;
+  value: string;
+  height: number;
+  onChange: (v: string) => void;
+  onCommit: () => void;
+  onCancel: () => void;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+}) {
+  const paddingTop = Math.max(4, Math.floor((height - 22) / 2));
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onCommit}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onCancel();
+        } else if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          onCommit();
+        }
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      className="nodrag nopan nowheel"
+      style={{
+        position: "absolute",
+        inset: 0,
+        paddingTop,
+        paddingLeft: 8,
+        paddingRight: 8,
+        paddingBottom: 4,
+        resize: "none",
+        background: "transparent",
+        border: "none",
+        outline: "none",
+        color: "var(--text-copy-primary)",
+        fontSize: "0.875rem",
+        textAlign: "center",
+        overflow: "hidden",
+        zIndex: 10,
+        // prevent the textarea from being transparent to clicks that would deselect
+        pointerEvents: "all",
+      }}
+      rows={1}
+      data-node-id={nodeId}
+    />
+  );
+}
+
+export function CanvasNodeComponent({
+  id,
+  data,
+  selected,
+  width: nodeWidth,
+  height: nodeHeight,
+}: NodeProps<CanvasNode>) {
+  const width = nodeWidth ?? data.width ?? 160;
+  const height = nodeHeight ?? data.height ?? 80;
   const shape = data.shape ?? "rectangle";
   const stroke = selected ? STROKE_SELECTED : STROKE_DEFAULT;
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(data.label);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { onNodesChange } = useCanvasActions();
+  const { getNode } = useReactFlow();
+
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setEditValue(data.label);
+      setIsEditing(true);
+    },
+    [data.label],
+  );
+
+  const commitEdit = useCallback(() => {
+    setIsEditing(false);
+    const current = getNode(id) as CanvasNode | undefined;
+    if (!current) return;
+    const change: NodeReplaceChange<CanvasNode> = {
+      type: "replace",
+      id,
+      item: { ...current, data: { ...current.data, label: editValue } },
+    };
+    onNodesChange([change]);
+  }, [id, editValue, getNode, onNodesChange]);
+
+  const cancelEdit = useCallback(() => {
+    setIsEditing(false);
+    setEditValue(data.label);
+  }, [data.label]);
+
+  const editingProps = {
+    nodeId: id,
+    value: editValue,
+    height,
+    onChange: setEditValue,
+    onCommit: commitEdit,
+    onCancel: cancelEdit,
+    textareaRef,
+  };
 
   if (shape === "rectangle" || shape === "pill" || shape === "circle") {
     return (
@@ -111,16 +235,40 @@ export function CanvasNodeComponent({ data, selected }: NodeProps<CanvasNode>) {
           shape === "rectangle" ? "rounded-xl" : "rounded-full",
           selected ? "border-brand" : "border-surface-border",
         )}
-        style={{ width, height }}
+        style={{ width, height, position: "relative" }}
       >
+        <NodeResizer
+          isVisible={selected}
+          minWidth={MIN_WIDTH}
+          minHeight={MIN_HEIGHT}
+          handleStyle={RESIZER_HANDLE_STYLE}
+          lineStyle={RESIZER_LINE_STYLE}
+        />
         <Handles />
-        <NodeLabel label={data.label} />
+        <span
+          className={cn(
+            "text-sm select-none",
+            isEditing && "invisible",
+            data.label ? "text-copy-primary" : "text-copy-faint italic",
+          )}
+          onDoubleClick={handleDoubleClick}
+        >
+          {data.label || "Label"}
+        </span>
+        {isEditing && <EditingTextarea {...editingProps} />}
       </div>
     );
   }
 
   return (
     <div style={{ width, height, position: "relative" }}>
+      <NodeResizer
+        isVisible={selected}
+        minWidth={MIN_WIDTH}
+        minHeight={MIN_HEIGHT}
+        handleStyle={RESIZER_HANDLE_STYLE}
+        lineStyle={RESIZER_LINE_STYLE}
+      />
       <Handles />
       {shape === "diamond" && <DiamondSvg w={width} h={height} stroke={stroke} />}
       {shape === "hexagon" && <HexagonSvg w={width} h={height} stroke={stroke} />}
@@ -135,8 +283,19 @@ export function CanvasNodeComponent({ data, selected }: NodeProps<CanvasNode>) {
           pointerEvents: "none",
         }}
       >
-        <NodeLabel label={data.label} />
+        <span
+          className={cn(
+            "text-sm select-none",
+            isEditing && "invisible",
+            data.label ? "text-copy-primary" : "text-copy-faint italic",
+          )}
+          style={{ pointerEvents: "auto" }}
+          onDoubleClick={handleDoubleClick}
+        >
+          {data.label || "Label"}
+        </span>
       </div>
+      {isEditing && <EditingTextarea {...editingProps} />}
     </div>
   );
 }
