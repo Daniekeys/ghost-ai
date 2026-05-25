@@ -126,6 +126,13 @@ Update this file whenever the current phase, active feature, or implementation s
   - Visibility follow-up: empty dropped nodes now keep the paired text color for the placeholder label and use a stronger unselected border so default neutral nodes remain visible on the dark canvas
   - Size follow-up: increased `ShapePanel` default drag payload dimensions; fixed sizing at the React Flow node layer by setting `initialWidth`/`initialHeight` on newly dropped nodes and making `CanvasNodeComponent` prefer stored dimensions over early content measurements; resize previews remain live and resize-end dimensions are persisted back into node data
   - `npm.cmd run build` passed before final formatting polish; final rerun was blocked by sandboxed Google Fonts fetch after escalation was declined; `npx.cmd tsc --noEmit` passes
+- Feature 16: Edge Behavior
+  - `components/editor/canvas/canvas-node.tsx` - connection handles now appear on top, right, bottom, and left for every node; handles use small light dots with dark borders and fade in on node hover
+  - `components/editor/canvas/canvas-edge.tsx` - added custom `canvasEdge` renderer using `getSmoothStepPath` right-angle routing, rounded light strokes, wider invisible interaction width, hover/selection brightening, and `EdgeLabelRenderer` label placement
+  - `components/editor/canvas/canvas-flow.tsx` - registered `edgeTypes`, added default custom edge options with closed arrowheads, and creates new Liveblocks-backed connections as typed `canvasEdge` edges
+  - `components/editor/canvas/canvas-actions-context.tsx` - exposes Liveblocks-backed `onEdgesChange` to edge components for inline label persistence
+  - `types/canvas.ts` - `CanvasEdgeData` now supports an optional `label`
+  - `npm.cmd run build` passes
 
 ## In Progress
 
@@ -133,7 +140,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Feature 16 and beyond (canvas persistence, AI generation, etc.).
+- Feature 17 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 

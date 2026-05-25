@@ -8,7 +8,11 @@ import {
   Background,
   BackgroundVariant,
   ConnectionMode,
+  MarkerType,
+  addEdge,
   useReactFlow,
+  type Connection,
+  type EdgeTypes,
   type NodeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
@@ -16,6 +20,7 @@ import "@xyflow/react/dist/style.css";
 import "@liveblocks/react-ui/styles.css";
 import "@liveblocks/react-flow/styles.css";
 import { CanvasNodeComponent } from "./canvas-node";
+import { CanvasEdgeComponent } from "./canvas-edge";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
 import { CanvasActionsContext } from "./canvas-actions-context";
 import {
@@ -27,6 +32,22 @@ import {
 const nodeTypes: NodeTypes = {
   canvasNode: CanvasNodeComponent,
 };
+
+const edgeTypes: EdgeTypes = {
+  canvasEdge: CanvasEdgeComponent,
+};
+
+const defaultEdgeOptions = {
+  type: "canvasEdge",
+  data: { label: "" },
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    color: "var(--text-primary)",
+    width: 16,
+    height: 16,
+  },
+  interactionWidth: 28,
+} satisfies Partial<CanvasEdge>;
 
 let nodeCounter = 0;
 
@@ -43,6 +64,25 @@ function CanvasFlowInner() {
     });
 
   const { screenToFlowPosition } = useReactFlow();
+
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      const [newEdge] = addEdge<CanvasEdge>(
+        {
+          ...connection,
+          type: "canvasEdge",
+          data: { label: "" },
+          markerEnd: defaultEdgeOptions.markerEnd,
+          interactionWidth: defaultEdgeOptions.interactionWidth,
+        },
+        [],
+      );
+
+      if (!newEdge) return;
+      onEdgesChange([{ type: "add", item: newEdge }]);
+    },
+    [onEdgesChange],
+  );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -85,7 +125,10 @@ function CanvasFlowInner() {
     [screenToFlowPosition, onNodesChange],
   );
 
-  const actionsValue = useMemo(() => ({ onNodesChange }), [onNodesChange]);
+  const actionsValue = useMemo(
+    () => ({ onNodesChange, onEdgesChange }),
+    [onNodesChange, onEdgesChange],
+  );
 
   return (
     <CanvasActionsContext.Provider value={actionsValue}>
@@ -99,9 +142,11 @@ function CanvasFlowInner() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
+          onConnect={handleConnect}
           onDelete={onDelete}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={defaultEdgeOptions}
           connectionMode={ConnectionMode.Loose}
           fitView
         >

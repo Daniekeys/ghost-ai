@@ -1,11 +1,12 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { OnNodesChange } from "@xyflow/react";
-import type { CanvasNode } from "@/types/canvas";
+import type { OnEdgesChange, OnNodesChange } from "@xyflow/react";
+import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 
 interface CanvasActionsContextValue {
   onNodesChange: OnNodesChange<CanvasNode>;
+  onEdgesChange: OnEdgesChange<CanvasEdge>;
 }
 
 export const CanvasActionsContext =

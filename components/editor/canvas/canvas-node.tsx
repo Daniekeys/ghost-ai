@@ -38,13 +38,33 @@ const RESIZER_LINE_STYLE: React.CSSProperties = {
   opacity: 0.5,
 };
 
+const HANDLE_STYLE: React.CSSProperties = {
+  width: 8,
+  height: 8,
+  background: "var(--text-primary)",
+  border: "1.5px solid var(--bg-base)",
+};
+
 function Handles() {
+  const handles = [
+    { id: "top", position: Position.Top },
+    { id: "right", position: Position.Right },
+    { id: "bottom", position: Position.Bottom },
+    { id: "left", position: Position.Left },
+  ];
+
   return (
     <>
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
-      <Handle type="target" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
+      {handles.map((handle) => (
+        <Handle
+          key={handle.id}
+          id={handle.id}
+          type="source"
+          position={handle.position}
+          className="opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          style={HANDLE_STYLE}
+        />
+      ))}
     </>
   );
 }
@@ -399,7 +419,7 @@ export function CanvasNodeComponent({
     return (
       <div
         className={cn(
-          "flex items-center justify-center border text-sm px-3 py-2 select-none",
+          "group flex items-center justify-center border text-sm px-3 py-2 select-none",
           shape === "rectangle" ? "rounded-xl" : "rounded-full",
           selected ? "border-brand" : "border-surface-border",
         )}
@@ -448,7 +468,7 @@ export function CanvasNodeComponent({
   }
 
   return (
-    <div style={{ width, height, position: "relative" }}>
+    <div className="group" style={{ width, height, position: "relative" }}>
       {selected && (
         <ColorToolbar
           selectedColor={fill}
