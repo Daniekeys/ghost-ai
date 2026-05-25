@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
-  MiniMap,
   Background,
   BackgroundVariant,
   ConnectionMode,
@@ -16,13 +15,21 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
+import {
+  useCanRedo,
+  useCanUndo,
+  useRedo,
+  useUndo,
+} from "@liveblocks/react/suspense";
 import "@xyflow/react/dist/style.css";
 import "@liveblocks/react-ui/styles.css";
 import "@liveblocks/react-flow/styles.css";
 import { CanvasNodeComponent } from "./canvas-node";
 import { CanvasEdgeComponent } from "./canvas-edge";
+import { CanvasControlBar } from "./canvas-control-bar";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
 import { CanvasActionsContext } from "./canvas-actions-context";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import {
   DEFAULT_NODE_COLOR,
   type CanvasNode,
@@ -63,7 +70,26 @@ function CanvasFlowInner() {
       edges: { initial: [] },
     });
 
-  const { screenToFlowPosition } = useReactFlow();
+  const flow = useReactFlow<CanvasNode, CanvasEdge>();
+  const { screenToFlowPosition } = flow;
+  const undo = useUndo();
+  const redo = useRedo();
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
+
+  const handleUndo = useCallback(() => {
+    if (canUndo) undo();
+  }, [canUndo, undo]);
+
+  const handleRedo = useCallback(() => {
+    if (canRedo) redo();
+  }, [canRedo, redo]);
+
+  useKeyboardShortcuts({
+    flow,
+    undo: handleUndo,
+    redo: handleRedo,
+  });
 
   const handleConnect = useCallback(
     (connection: Connection) => {
@@ -151,8 +177,14 @@ function CanvasFlowInner() {
           fitView
         >
           <Background variant={BackgroundVariant.Dots} />
-          <MiniMap />
           <Cursors />
+          <CanvasControlBar
+            flow={flow}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+          />
           <ShapePanel />
         </ReactFlow>
       </div>

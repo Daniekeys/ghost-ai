@@ -133,6 +133,11 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/canvas/canvas-actions-context.tsx` - exposes Liveblocks-backed `onEdgesChange` to edge components for inline label persistence
   - `types/canvas.ts` - `CanvasEdgeData` now supports an optional `label`
   - `npm.cmd run build` passes
+- Feature 17: Canvas Ergonomics
+  - `components/editor/canvas/canvas-control-bar.tsx` - added a bottom-left floating pill control bar with zoom out, fit view, zoom in, undo, redo, and a divider between zoom/history groups
+  - `components/editor/canvas/canvas-flow.tsx` - removed the minimap; wired control-bar zoom actions to the React Flow instance with short animation durations; wired undo/redo through Liveblocks history hooks and disabled unavailable history buttons
+  - `hooks/use-keyboard-shortcuts.ts` - added canvas keyboard shortcuts for zoom in/out and undo/redo while ignoring inputs, textareas, and content-editable fields
+  - `npm.cmd run build` passes
 
 ## In Progress
 
@@ -140,7 +145,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Feature 17 and beyond (canvas persistence, AI generation, etc.).
+- Feature 18 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 
