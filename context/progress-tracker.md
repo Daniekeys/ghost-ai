@@ -108,6 +108,10 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/canvas/shape-panel.tsx` — `ShapePanel` renders inside React Flow `Panel position="bottom-center"`; pill-shaped toolbar with six draggable shape buttons (rectangle, diamond, circle, pill, cylinder, hexagon); `ShapeDragPayload` interface (`shape`, `width`, `height`) serialized to `application/ghost-shape` dataTransfer key; default sizes: rectangle 160×80, diamond 140×120, circle 80×80, pill 160×64, cylinder 100×100, hexagon 120×120
   - `components/editor/canvas/canvas-flow.tsx` — refactored: outer `CanvasFlow` wraps inner `CanvasFlowInner` in `ReactFlowProvider`; inner component uses `useReactFlow().screenToFlowPosition` for coordinate conversion; `onDragOver` + `onDrop` on wrapper div; reads `application/ghost-shape` payload, creates `CanvasNode` with `type: "canvasNode"`, centered on drop position; node ID: `${shape}-${Date.now()}-${counter}`; `nodeTypes` constant registered at module level; `<ShapePanel />` rendered as React Flow child
   - `npm run build` passes
+- Feature 13: Node Shape Rendering & Drag Preview
+  - `components/editor/canvas/canvas-node.tsx` — shape-specific rendering: rectangle/pill/circle use CSS (`rounded-xl` / `rounded-full`); diamond/hexagon/cylinder render with inline SVG polygons/paths that scale with node size; subtle border at rest, bright `--accent-primary` stroke when selected; label overlaid via absolute div for SVG shapes
+  - `components/editor/canvas/shape-panel.tsx` — drag ghost preview: `onDragStart` suppresses native browser ghost via transparent 1×1 GIF `setDragImage`; tracks cursor via `document` `dragover` listener (added/removed only while dragging); renders `GhostShape` via `createPortal` to `document.body` at `position: fixed` centered on cursor with `opacity: 0.75`; cleared on `dragend`/`drop`; `GhostShape` mirrors the same SVG/CSS rendering as `CanvasNodeComponent`; drag/drop logic in `canvas-flow.tsx` unchanged
+  - `npm run build` passes
 
 ## In Progress
 
@@ -115,7 +119,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Feature 13 and beyond (shape-specific visuals, canvas persistence, AI generation, etc.).
+- Feature 14 and beyond (node label editing, canvas persistence, AI generation, etc.).
 
 ## Open Questions
 
