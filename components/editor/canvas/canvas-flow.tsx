@@ -4,29 +4,60 @@ import { useCallback, useMemo } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
-  MiniMap,
   Background,
   BackgroundVariant,
   ConnectionMode,
+  MarkerType,
+  addEdge,
   useReactFlow,
+  type Connection,
+  type EdgeTypes,
   type NodeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
+import {
+  useCanRedo,
+  useCanUndo,
+  useRedo,
+  useUndo,
+} from "@liveblocks/react/suspense";
 import "@xyflow/react/dist/style.css";
 import "@liveblocks/react-ui/styles.css";
 import "@liveblocks/react-flow/styles.css";
 import { CanvasNodeComponent } from "./canvas-node";
+import { CanvasEdgeComponent } from "./canvas-edge";
+import { CanvasControlBar } from "./canvas-control-bar";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
 import { CanvasActionsContext } from "./canvas-actions-context";
+import { StarterTemplatesModal } from "../starter-templates-modal";
+import { useWorkspace } from "../workspace-provider";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import {
   DEFAULT_NODE_COLOR,
   type CanvasNode,
   type CanvasEdge,
 } from "@/types/canvas";
+import type { CanvasTemplate } from "../starter-templates";
 
 const nodeTypes: NodeTypes = {
   canvasNode: CanvasNodeComponent,
 };
+
+const edgeTypes: EdgeTypes = {
+  canvasEdge: CanvasEdgeComponent,
+};
+
+const defaultEdgeOptions = {
+  type: "canvasEdge",
+  data: { label: "" },
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    color: "var(--text-primary)",
+    width: 16,
+    height: 16,
+  },
+  interactionWidth: 28,
+} satisfies Partial<CanvasEdge>;
 
 let nodeCounter = 0;
 
@@ -42,7 +73,81 @@ function CanvasFlowInner() {
       edges: { initial: [] },
     });
 
-  const { screenToFlowPosition } = useReactFlow();
+  const flow = useReactFlow<CanvasNode, CanvasEdge>();
+  const { screenToFlowPosition } = flow;
+  const {
+    isStarterTemplatesOpen,
+    setStarterTemplatesOpen,
+  } = useWorkspace();
+  const undo = useUndo();
+  const redo = useRedo();
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
+
+  const handleUndo = useCallback(() => {
+    if (canUndo) undo();
+  }, [canUndo, undo]);
+
+  const handleRedo = useCallback(() => {
+    if (canRedo) redo();
+  }, [canRedo, redo]);
+
+  useKeyboardShortcuts({
+    flow,
+    undo: handleUndo,
+    redo: handleRedo,
+  });
+
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      const [newEdge] = addEdge<CanvasEdge>(
+        {
+          ...connection,
+          type: "canvasEdge",
+          data: { label: "" },
+          markerEnd: defaultEdgeOptions.markerEnd,
+          interactionWidth: defaultEdgeOptions.interactionWidth,
+        },
+        [],
+      );
+
+      if (!newEdge) return;
+      onEdgesChange([{ type: "add", item: newEdge }]);
+    },
+    [onEdgesChange],
+  );
+
+  const importTemplate = useCallback(
+    (template: CanvasTemplate) => {
+      onDelete({ nodes, edges });
+      onNodesChange(
+        template.nodes.map((node) => ({
+          type: "add",
+          item: {
+            ...node,
+            position: { ...node.position },
+            data: { ...node.data },
+          },
+        })),
+      );
+      onEdgesChange(
+        template.edges.map((edge) => ({
+          type: "add",
+          item: {
+            ...edge,
+            data: { ...edge.data },
+          },
+        })),
+      );
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          flow.fitView({ duration: 240, padding: 0.2 });
+        });
+      });
+    },
+    [edges, flow, nodes, onDelete, onEdgesChange, onNodesChange],
+  );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -85,7 +190,10 @@ function CanvasFlowInner() {
     [screenToFlowPosition, onNodesChange],
   );
 
-  const actionsValue = useMemo(() => ({ onNodesChange }), [onNodesChange]);
+  const actionsValue = useMemo(
+    () => ({ onNodesChange, onEdgesChange }),
+    [onNodesChange, onEdgesChange],
+  );
 
   return (
     <CanvasActionsContext.Provider value={actionsValue}>
@@ -99,17 +207,30 @@ function CanvasFlowInner() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
+          onConnect={handleConnect}
           onDelete={onDelete}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={defaultEdgeOptions}
           connectionMode={ConnectionMode.Loose}
           fitView
         >
           <Background variant={BackgroundVariant.Dots} />
-          <MiniMap />
           <Cursors />
+          <CanvasControlBar
+            flow={flow}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+          />
           <ShapePanel />
         </ReactFlow>
+        <StarterTemplatesModal
+          open={isStarterTemplatesOpen}
+          onOpenChange={setStarterTemplatesOpen}
+          onImport={importTemplate}
+        />
       </div>
     </CanvasActionsContext.Provider>
   );

@@ -126,6 +126,26 @@ Update this file whenever the current phase, active feature, or implementation s
   - Visibility follow-up: empty dropped nodes now keep the paired text color for the placeholder label and use a stronger unselected border so default neutral nodes remain visible on the dark canvas
   - Size follow-up: increased `ShapePanel` default drag payload dimensions; fixed sizing at the React Flow node layer by setting `initialWidth`/`initialHeight` on newly dropped nodes and making `CanvasNodeComponent` prefer stored dimensions over early content measurements; resize previews remain live and resize-end dimensions are persisted back into node data
   - `npm.cmd run build` passed before final formatting polish; final rerun was blocked by sandboxed Google Fonts fetch after escalation was declined; `npx.cmd tsc --noEmit` passes
+- Feature 16: Edge Behavior
+  - `components/editor/canvas/canvas-node.tsx` - connection handles now appear on top, right, bottom, and left for every node; handles use small light dots with dark borders and fade in on node hover
+  - `components/editor/canvas/canvas-edge.tsx` - added custom `canvasEdge` renderer using `getSmoothStepPath` right-angle routing, rounded light strokes, wider invisible interaction width, hover/selection brightening, and `EdgeLabelRenderer` label placement
+  - `components/editor/canvas/canvas-flow.tsx` - registered `edgeTypes`, added default custom edge options with closed arrowheads, and creates new Liveblocks-backed connections as typed `canvasEdge` edges
+  - `components/editor/canvas/canvas-actions-context.tsx` - exposes Liveblocks-backed `onEdgesChange` to edge components for inline label persistence
+  - `types/canvas.ts` - `CanvasEdgeData` now supports an optional `label`
+  - `npm.cmd run build` passes
+- Feature 17: Canvas Ergonomics
+  - `components/editor/canvas/canvas-control-bar.tsx` - added a bottom-left floating pill control bar with zoom out, fit view, zoom in, undo, redo, and a divider between zoom/history groups
+  - `components/editor/canvas/canvas-flow.tsx` - removed the minimap; wired control-bar zoom actions to the React Flow instance with short animation durations; wired undo/redo through Liveblocks history hooks and disabled unavailable history buttons
+  - `hooks/use-keyboard-shortcuts.ts` - added canvas keyboard shortcuts for zoom in/out and undo/redo while ignoring inputs, textareas, and content-editable fields
+  - `npm.cmd run build` passes
+- Feature 18: Starter Templates
+  - `components/editor/starter-templates.ts` - added typed static canvas templates for microservices commerce, CI/CD pipeline, and event-driven systems using the shared canvas node/edge types and node color palette
+  - `components/editor/starter-templates-modal.tsx` - added a dark themed template picker dialog with scrollable card grid, lightweight SVG diagram previews, and per-template import actions
+  - `components/editor/workspace-provider.tsx` and `components/editor/editor-navbar.tsx` - added workspace state and navbar entry point for opening starter templates
+  - `components/editor/canvas/canvas-flow.tsx` - imports selected templates through the existing Liveblocks-backed flow handlers, clearing current nodes/edges before adding the selected template and fitting the view afterward
+  - Follow-up visual polish: widened the import dialog, changed cards to landscape preview-first layouts, improved SVG preview legibility, shortened card descriptions, and matched the quieter outline import action style
+  - Width follow-up: increased the template dialog to an explicit `1120px` desktop width with `max-w-none` and wider card columns so the three templates sit comfortably side by side
+  - `npm.cmd run build` passes
 
 ## In Progress
 
@@ -133,7 +153,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Feature 16 and beyond (canvas persistence, AI generation, etc.).
+ - Feature 19 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 
