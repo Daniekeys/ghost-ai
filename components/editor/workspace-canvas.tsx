@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Ghost, Bot, Settings, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Bot, Settings, Plus, Pencil, Trash2, X } from "lucide-react";
+import { CanvasRoom } from "./canvas/canvas-room";
 import { useWorkspace } from "./workspace-provider";
 import { useProjectDialogsContext } from "./project-dialogs-provider";
 import { ShareDialog } from "./dialogs/share-dialog";
@@ -155,26 +156,9 @@ export function WorkspaceCanvas({
         </aside>
       )}
 
-      {/* Center canvas placeholder */}
-      <div className="flex-1 bg-base flex items-center justify-center">
-        <div className="flex flex-col items-center gap-5 max-w-md text-center px-8">
-          <div className="size-16 rounded-full bg-elevated border border-surface-border flex items-center justify-center">
-            <Ghost className="size-7 text-copy-muted" />
-          </div>
-          <div className="flex flex-col gap-3">
-            <p className="text-[11px] font-mono tracking-[0.2em] uppercase text-copy-muted">
-              Workspace Shell
-            </p>
-            <h2 className="text-2xl font-semibold text-copy-primary leading-snug">
-              Canvas and collaboration tooling land here next.
-            </h2>
-            <p className="text-sm text-copy-muted leading-relaxed">
-              This room is ready for the shared architecture canvas, durable AI
-              workflows, and real-time presence. For now, the shell is wired
-              with project context and navigation only.
-            </p>
-          </div>
-        </div>
+      {/* Live collaborative canvas */}
+      <div className="flex-1 overflow-hidden">
+        <CanvasRoom roomId={projectId} />
       </div>
 
       {/* Right AI Copilot sidebar */}
