@@ -108,6 +108,24 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/canvas/shape-panel.tsx` — `ShapePanel` renders inside React Flow `Panel position="bottom-center"`; pill-shaped toolbar with six draggable shape buttons (rectangle, diamond, circle, pill, cylinder, hexagon); `ShapeDragPayload` interface (`shape`, `width`, `height`) serialized to `application/ghost-shape` dataTransfer key; default sizes: rectangle 160×80, diamond 140×120, circle 80×80, pill 160×64, cylinder 100×100, hexagon 120×120
   - `components/editor/canvas/canvas-flow.tsx` — refactored: outer `CanvasFlow` wraps inner `CanvasFlowInner` in `ReactFlowProvider`; inner component uses `useReactFlow().screenToFlowPosition` for coordinate conversion; `onDragOver` + `onDrop` on wrapper div; reads `application/ghost-shape` payload, creates `CanvasNode` with `type: "canvasNode"`, centered on drop position; node ID: `${shape}-${Date.now()}-${counter}`; `nodeTypes` constant registered at module level; `<ShapePanel />` rendered as React Flow child
   - `npm run build` passes
+- Feature 13: Node Shape Rendering & Drag Preview
+  - `components/editor/canvas/canvas-node.tsx` — shape-specific rendering: rectangle/pill/circle use CSS (`rounded-xl` / `rounded-full`); diamond/hexagon/cylinder render with inline SVG polygons/paths that scale with node size; subtle border at rest, bright `--accent-primary` stroke when selected; label overlaid via absolute div for SVG shapes
+  - `components/editor/canvas/shape-panel.tsx` — drag ghost preview: `onDragStart` suppresses native browser ghost via transparent 1×1 GIF `setDragImage`; tracks cursor via `document` `dragover` listener (added/removed only while dragging); renders `GhostShape` via `createPortal` to `document.body` at `position: fixed` centered on cursor with `opacity: 0.75`; cleared on `dragend`/`drop`; `GhostShape` mirrors the same SVG/CSS rendering as `CanvasNodeComponent`; drag/drop logic in `canvas-flow.tsx` unchanged
+  - `npm run build` passes
+
+- Feature 14: Node Resizing & Inline Label Editing
+  - `components/editor/canvas/canvas-actions-context.tsx` — React context (`CanvasActionsContext`, `useCanvasActions`) exposing `onNodesChange` from `useLiveblocksFlow` to node components
+  - `components/editor/canvas/canvas-flow.tsx` — provides `CanvasActionsContext` wrapping `ReactFlow`; context value memoized via `useMemo`
+  - `components/editor/canvas/canvas-node.tsx` — `NodeResizer` added to all shapes (`isVisible={selected}`, `minWidth=60`, `minHeight=40`, subtle dark-themed handle/line styles); rendering uses `nodeWidth ?? data.width ?? 160` / `nodeHeight ?? data.height ?? 80` so post-resize dimensions are reflected; double-click activates inline textarea editing; `EditingTextarea` positioned `absolute inset-0` over the label, `nodrag nopan nowheel` classes prevent canvas drag/pan/scroll during edit; blur and Enter commit via `NodeReplaceChange` through `onNodesChange`; Escape cancels; label span hidden (`invisible`) while editing
+  - `npm run build` passes
+
+- Feature 15: Node Color Toolbar
+  - `types/canvas.ts` - added `NODE_COLORS` palette from `ui-context.md`, `DEFAULT_NODE_COLOR`, `NodeColorPair`, and `CanvasNodeData.textColor`; converted empty `CanvasEdgeData` interface to a type alias
+  - `components/editor/canvas/canvas-flow.tsx` - newly dropped nodes now receive the default predefined background/text color pair while preserving existing drag/drop behavior
+  - `components/editor/canvas/canvas-node.tsx` - nodes render with their stored background/text colors across CSS and SVG shapes; selected nodes show a `NodeToolbar` above the node with one swatch per predefined pair; swatch clicks replace only the selected node's `data.color` and `data.textColor` through the existing Liveblocks-backed `onNodesChange`; toolbar interactions use `nodrag nopan nowheel` and event propagation guards
+  - Visibility follow-up: empty dropped nodes now keep the paired text color for the placeholder label and use a stronger unselected border so default neutral nodes remain visible on the dark canvas
+  - Size follow-up: increased `ShapePanel` default drag payload dimensions; fixed sizing at the React Flow node layer by setting `initialWidth`/`initialHeight` on newly dropped nodes and making `CanvasNodeComponent` prefer stored dimensions over early content measurements; resize previews remain live and resize-end dimensions are persisted back into node data
+  - `npm.cmd run build` passed before final formatting polish; final rerun was blocked by sandboxed Google Fonts fetch after escalation was declined; `npx.cmd tsc --noEmit` passes
 
 ## In Progress
 
@@ -115,7 +133,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Feature 13 and beyond (shape-specific visuals, canvas persistence, AI generation, etc.).
+- Feature 16 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 
