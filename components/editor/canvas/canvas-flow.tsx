@@ -29,12 +29,15 @@ import { CanvasEdgeComponent } from "./canvas-edge";
 import { CanvasControlBar } from "./canvas-control-bar";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
 import { CanvasActionsContext } from "./canvas-actions-context";
+import { StarterTemplatesModal } from "../starter-templates-modal";
+import { useWorkspace } from "../workspace-provider";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import {
   DEFAULT_NODE_COLOR,
   type CanvasNode,
   type CanvasEdge,
 } from "@/types/canvas";
+import type { CanvasTemplate } from "../starter-templates";
 
 const nodeTypes: NodeTypes = {
   canvasNode: CanvasNodeComponent,
@@ -72,6 +75,10 @@ function CanvasFlowInner() {
 
   const flow = useReactFlow<CanvasNode, CanvasEdge>();
   const { screenToFlowPosition } = flow;
+  const {
+    isStarterTemplatesOpen,
+    setStarterTemplatesOpen,
+  } = useWorkspace();
   const undo = useUndo();
   const redo = useRedo();
   const canUndo = useCanUndo();
@@ -108,6 +115,38 @@ function CanvasFlowInner() {
       onEdgesChange([{ type: "add", item: newEdge }]);
     },
     [onEdgesChange],
+  );
+
+  const importTemplate = useCallback(
+    (template: CanvasTemplate) => {
+      onDelete({ nodes, edges });
+      onNodesChange(
+        template.nodes.map((node) => ({
+          type: "add",
+          item: {
+            ...node,
+            position: { ...node.position },
+            data: { ...node.data },
+          },
+        })),
+      );
+      onEdgesChange(
+        template.edges.map((edge) => ({
+          type: "add",
+          item: {
+            ...edge,
+            data: { ...edge.data },
+          },
+        })),
+      );
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          flow.fitView({ duration: 240, padding: 0.2 });
+        });
+      });
+    },
+    [edges, flow, nodes, onDelete, onEdgesChange, onNodesChange],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -187,6 +226,11 @@ function CanvasFlowInner() {
           />
           <ShapePanel />
         </ReactFlow>
+        <StarterTemplatesModal
+          open={isStarterTemplatesOpen}
+          onOpenChange={setStarterTemplatesOpen}
+          onImport={importTemplate}
+        />
       </div>
     </CanvasActionsContext.Provider>
   );

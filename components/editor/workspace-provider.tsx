@@ -18,6 +18,9 @@ interface WorkspaceContextValue {
   isShareDialogOpen: boolean
   openShareDialog: () => void
   closeShareDialog: () => void
+  isStarterTemplatesOpen: boolean
+  openStarterTemplates: () => void
+  setStarterTemplatesOpen: (open: boolean) => void
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
@@ -30,6 +33,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [isWorkspaceMode, setIsWorkspaceMode] = useState(false)
   const [isWorkspaceSidebarOpen, setIsWorkspaceSidebarOpen] = useState(true)
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+  const [isStarterTemplatesOpen, setIsStarterTemplatesOpen] = useState(false)
 
   return (
     <WorkspaceContext.Provider
@@ -49,6 +53,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         isShareDialogOpen,
         openShareDialog: () => setIsShareDialogOpen(true),
         closeShareDialog: () => setIsShareDialogOpen(false),
+        isStarterTemplatesOpen,
+        openStarterTemplates: () => setIsStarterTemplatesOpen(true),
+        setStarterTemplatesOpen: setIsStarterTemplatesOpen,
       }}
     >
       {children}
