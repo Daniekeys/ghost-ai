@@ -119,13 +119,21 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/canvas/canvas-node.tsx` — `NodeResizer` added to all shapes (`isVisible={selected}`, `minWidth=60`, `minHeight=40`, subtle dark-themed handle/line styles); rendering uses `nodeWidth ?? data.width ?? 160` / `nodeHeight ?? data.height ?? 80` so post-resize dimensions are reflected; double-click activates inline textarea editing; `EditingTextarea` positioned `absolute inset-0` over the label, `nodrag nopan nowheel` classes prevent canvas drag/pan/scroll during edit; blur and Enter commit via `NodeReplaceChange` through `onNodesChange`; Escape cancels; label span hidden (`invisible`) while editing
   - `npm run build` passes
 
+- Feature 15: Node Color Toolbar
+  - `types/canvas.ts` - added `NODE_COLORS` palette from `ui-context.md`, `DEFAULT_NODE_COLOR`, `NodeColorPair`, and `CanvasNodeData.textColor`; converted empty `CanvasEdgeData` interface to a type alias
+  - `components/editor/canvas/canvas-flow.tsx` - newly dropped nodes now receive the default predefined background/text color pair while preserving existing drag/drop behavior
+  - `components/editor/canvas/canvas-node.tsx` - nodes render with their stored background/text colors across CSS and SVG shapes; selected nodes show a `NodeToolbar` above the node with one swatch per predefined pair; swatch clicks replace only the selected node's `data.color` and `data.textColor` through the existing Liveblocks-backed `onNodesChange`; toolbar interactions use `nodrag nopan nowheel` and event propagation guards
+  - Visibility follow-up: empty dropped nodes now keep the paired text color for the placeholder label and use a stronger unselected border so default neutral nodes remain visible on the dark canvas
+  - Size follow-up: increased `ShapePanel` default drag payload dimensions; fixed sizing at the React Flow node layer by setting `initialWidth`/`initialHeight` on newly dropped nodes and making `CanvasNodeComponent` prefer stored dimensions over early content measurements; resize previews remain live and resize-end dimensions are persisted back into node data
+  - `npm.cmd run build` passed before final formatting polish; final rerun was blocked by sandboxed Google Fonts fetch after escalation was declined; `npx.cmd tsc --noEmit` passes
+
 ## In Progress
 
 - None.
 
 ## Next Up
 
-- Feature 15 and beyond (canvas persistence, AI generation, etc.).
+- Feature 16 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 

@@ -28,12 +28,12 @@ interface ShapeConfig {
 }
 
 const SHAPES: ShapeConfig[] = [
-  { shape: "rectangle", label: "Rectangle", icon: RectangleHorizontal, width: 160, height: 80 },
-  { shape: "diamond",   label: "Diamond",   icon: Diamond,             width: 140, height: 120 },
-  { shape: "circle",    label: "Circle",    icon: Circle,              width: 80,  height: 80 },
-  { shape: "pill",      label: "Pill",      icon: Pill,                width: 160, height: 64 },
-  { shape: "cylinder",  label: "Cylinder",  icon: Cylinder,            width: 100, height: 100 },
-  { shape: "hexagon",   label: "Hexagon",   icon: Hexagon,             width: 120, height: 120 },
+  { shape: "rectangle", label: "Rectangle", icon: RectangleHorizontal, width: 220, height: 110 },
+  { shape: "diamond",   label: "Diamond",   icon: Diamond,             width: 190, height: 160 },
+  { shape: "circle",    label: "Circle",    icon: Circle,              width: 120, height: 120 },
+  { shape: "pill",      label: "Pill",      icon: Pill,                width: 220, height: 86 },
+  { shape: "cylinder",  label: "Cylinder",  icon: Cylinder,            width: 140, height: 140 },
+  { shape: "hexagon",   label: "Hexagon",   icon: Hexagon,             width: 160, height: 150 },
 ];
 
 const FILL = "var(--bg-elevated)";

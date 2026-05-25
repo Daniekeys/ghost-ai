@@ -18,7 +18,11 @@ import "@liveblocks/react-flow/styles.css";
 import { CanvasNodeComponent } from "./canvas-node";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
 import { CanvasActionsContext } from "./canvas-actions-context";
-import type { CanvasNode, CanvasEdge } from "@/types/canvas";
+import {
+  DEFAULT_NODE_COLOR,
+  type CanvasNode,
+  type CanvasEdge,
+} from "@/types/canvas";
 
 const nodeTypes: NodeTypes = {
   canvasNode: CanvasNodeComponent,
@@ -60,12 +64,16 @@ function CanvasFlowInner() {
       const newNode: CanvasNode = {
         id: generateNodeId(payload.shape),
         type: "canvasNode",
+        initialWidth: payload.width,
+        initialHeight: payload.height,
         position: {
           x: position.x - payload.width / 2,
           y: position.y - payload.height / 2,
         },
         data: {
           label: "",
+          color: DEFAULT_NODE_COLOR.background,
+          textColor: DEFAULT_NODE_COLOR.text,
           shape: payload.shape,
           width: payload.width,
           height: payload.height,
