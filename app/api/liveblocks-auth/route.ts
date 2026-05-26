@@ -1,6 +1,10 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { checkProjectAccess } from "@/lib/project-access";
-import { getLiveblocksClient, getCursorColor } from "@/lib/liveblocks";
+import {
+  getLiveblocksClient,
+  getCursorColor,
+  grantLiveblocksRoomAccess,
+} from "@/lib/liveblocks";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -36,13 +40,7 @@ export async function POST(request: Request) {
   const color = getCursorColor(userId);
 
   const liveblocks = getLiveblocksClient();
-
-  await liveblocks.getOrCreateRoom(projectId, {
-    defaultAccesses: [],
-    usersAccesses: {
-      [userId]: ["room:write"],
-    },
-  });
+  await grantLiveblocksRoomAccess(projectId, userId);
 
   const { status, body } = await liveblocks.identifyUser(
     { userId, groupIds: [] },

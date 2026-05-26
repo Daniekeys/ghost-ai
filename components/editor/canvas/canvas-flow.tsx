@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,6 +15,7 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
+import { useUpdateMyPresence } from "@liveblocks/react";
 import {
   useCanRedo,
   useCanUndo,
@@ -32,6 +33,7 @@ import { CanvasActionsContext } from "./canvas-actions-context";
 import { StarterTemplatesModal } from "../starter-templates-modal";
 import { useWorkspace } from "../workspace-provider";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useCanvasAutosave } from "@/hooks/use-canvas-autosave";
 import {
   DEFAULT_NODE_COLOR,
   type CanvasNode,
@@ -75,10 +77,63 @@ function CanvasFlowInner() {
 
   const flow = useReactFlow<CanvasNode, CanvasEdge>();
   const { screenToFlowPosition } = flow;
+  const updateMyPresence = useUpdateMyPresence();
   const {
+    projectId,
     isStarterTemplatesOpen,
     setStarterTemplatesOpen,
+    setSaveStatus,
+    setTriggerSave,
   } = useWorkspace();
+
+  const hasLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (hasLoadedRef.current || !projectId) return;
+    if (nodes.length > 0 || edges.length > 0) {
+      hasLoadedRef.current = true;
+      return;
+    }
+    hasLoadedRef.current = true;
+
+    fetch(`/api/projects/${projectId}/canvas`)
+      .then((res) => res.json())
+      .then((data: { nodes?: CanvasNode[]; edges?: CanvasEdge[] }) => {
+        const savedNodes = data.nodes ?? [];
+        const savedEdges = data.edges ?? [];
+        if (savedNodes.length === 0 && savedEdges.length === 0) return;
+        onNodesChange(
+          savedNodes.map((node) => ({ type: "add" as const, item: node })),
+        );
+        onEdgesChange(
+          savedEdges.map((edge) => ({ type: "add" as const, item: edge })),
+        );
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            flow.fitView({ duration: 240, padding: 0.2 });
+          });
+        });
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { saveStatus, triggerSave } = projectId
+    ? useCanvasAutosave({
+        projectId,
+        nodes,
+        edges,
+      })
+    : { saveStatus: "idle" as const, triggerSave: () => {} };
+
+  useEffect(() => {
+    setSaveStatus(saveStatus);
+  }, [saveStatus, setSaveStatus]);
+
+  useEffect(() => {
+    setTriggerSave(triggerSave);
+    return () => setTriggerSave(null);
+  }, [triggerSave, setTriggerSave]);
   const undo = useUndo();
   const redo = useRedo();
   const canUndo = useCanUndo();
@@ -96,6 +151,7 @@ function CanvasFlowInner() {
     flow,
     undo: handleUndo,
     redo: handleRedo,
+    onDelete,
   });
 
   const handleConnect = useCallback(
@@ -149,6 +205,21 @@ function CanvasFlowInner() {
     [edges, flow, nodes, onDelete, onEdgesChange, onNodesChange],
   );
 
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent) => {
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      updateMyPresence({ cursor: position });
+    },
+    [screenToFlowPosition, updateMyPresence],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    updateMyPresence({ cursor: null });
+  }, [updateMyPresence]);
+
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
@@ -201,6 +272,8 @@ function CanvasFlowInner() {
         className="w-full h-full"
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         <ReactFlow
           nodes={nodes}

@@ -3,6 +3,7 @@
 import { LiveblocksProvider, RoomProvider, ClientSideSuspense } from "@liveblocks/react/suspense";
 import { ErrorBoundary } from "react-error-boundary";
 import { CanvasFlow } from "./canvas-flow";
+import { PresenceAvatars } from "./presence-avatars";
 
 interface CanvasRoomProps {
   roomId: string;
@@ -40,13 +41,16 @@ export function CanvasRoom({ roomId }: CanvasRoomProps) {
     >
       <RoomProvider
         id={roomId}
-        initialPresence={{ cursor: null, isThinking: false }}
+        initialPresence={{ cursor: null, thinking: false }}
       >
-        <ErrorBoundary fallback={<CanvasConnectionError />}>
-          <ClientSideSuspense fallback={<CanvasLoading />}>
-            <CanvasFlow />
-          </ClientSideSuspense>
-        </ErrorBoundary>
+        <div className="relative w-full h-full">
+          <ErrorBoundary fallback={<CanvasConnectionError />}>
+            <ClientSideSuspense fallback={<CanvasLoading />}>
+              <CanvasFlow />
+            </ClientSideSuspense>
+          </ErrorBoundary>
+          <PresenceAvatars />
+        </div>
       </RoomProvider>
     </LiveblocksProvider>
   );

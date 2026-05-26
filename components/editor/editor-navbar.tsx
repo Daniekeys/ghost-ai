@@ -21,7 +21,14 @@ export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarPro
     toggleWorkspaceSidebar,
     openShareDialog,
     openStarterTemplates,
+    saveStatus,
+    triggerSave,
   } = useWorkspace()
+
+  const saveLabel =
+    saveStatus === "saving" ? "Saving..." :
+    saveStatus === "saved"  ? "Saved"     :
+    saveStatus === "error"  ? "Error"     : "Save"
 
   const sidebarOpen = isWorkspaceMode ? isWorkspaceSidebarOpen : isSidebarOpen
   const handleToggleSidebar = isWorkspaceMode ? toggleWorkspaceSidebar : onToggleSidebar
@@ -59,6 +66,17 @@ export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarPro
       <div className="flex items-center gap-1.5 pr-1">
         {projectName && (
           <>
+            {isWorkspaceMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Save canvas"
+                disabled={saveStatus === "saving"}
+                onClick={() => triggerSave?.()}
+              >
+                {saveLabel}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, Settings, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { CanvasRoom } from "./canvas/canvas-room";
 import { useWorkspace } from "./workspace-provider";
 import { useProjectDialogsContext } from "./project-dialogs-provider";
 import { ShareDialog } from "./dialogs/share-dialog";
+import { AiSidebar } from "./ai-sidebar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,6 +31,7 @@ export function WorkspaceCanvas({
     setIsOwner,
     setIsWorkspaceMode,
     isAiSidebarOpen,
+    toggleAiSidebar,
     isWorkspaceSidebarOpen,
     toggleWorkspaceSidebar,
     isShareDialogOpen,
@@ -161,51 +163,8 @@ export function WorkspaceCanvas({
         <CanvasRoom roomId={projectId} />
       </div>
 
-      {/* Right AI Copilot sidebar */}
-      {isAiSidebarOpen && (
-        <aside className="w-72 shrink-0 border-l border-surface-border bg-surface flex flex-col">
-          <div className="flex items-start justify-between px-4 py-4 border-b border-surface-border shrink-0">
-            <div>
-              <h2 className="text-sm font-semibold text-copy-primary">
-                AI Copilot
-              </h2>
-              <p className="text-xs text-copy-muted">Placeholder panel</p>
-            </div>
-            <Button variant="ghost" size="icon-sm">
-              <Settings className="size-4 text-copy-muted" />
-            </Button>
-          </div>
-
-          <div className="flex-1 p-4 flex flex-col gap-4 overflow-hidden">
-            <div className="rounded-2xl bg-elevated border border-surface-border p-4 flex gap-3">
-              <div className="size-8 rounded-full bg-ai/20 flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="size-4 text-ai-text" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-copy-primary">
-                  Chat surface pending
-                </p>
-                <p className="text-xs text-copy-muted mt-1 leading-relaxed">
-                  The toggle is wired. Messaging and generation are
-                  intentionally out of scope here.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex-1" />
-
-            <div className="border-t border-surface-border pt-4">
-              <p className="text-[10px] tracking-[0.15em] uppercase text-copy-faint font-mono mb-2">
-                Future Hooks
-              </p>
-              <p className="text-xs text-copy-muted leading-relaxed">
-                Prompt composer, run status, and architecture guidance will
-                attach to this sidebar.
-              </p>
-            </div>
-          </div>
-        </aside>
-      )}
+      {/* Right AI sidebar */}
+      <AiSidebar isOpen={isAiSidebarOpen} onClose={toggleAiSidebar} />
 
       <ShareDialog
         projectId={projectId}
