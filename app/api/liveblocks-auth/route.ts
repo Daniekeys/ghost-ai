@@ -23,7 +23,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const user = await currentUser();
+  let user: Awaited<ReturnType<typeof currentUser>> = null;
+  try {
+    user = await currentUser();
+  } catch (err) {
+    console.error("[liveblocks-auth] currentUser() failed:", err);
+    return Response.json({ error: "Authentication service unavailable" }, { status: 503 });
+  }
+
   const userEmail = user?.primaryEmailAddress?.emailAddress ?? null;
 
   const access = await checkProjectAccess(projectId, userId, userEmail);

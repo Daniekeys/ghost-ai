@@ -107,7 +107,7 @@ export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarPro
             </Button>
           </>
         )}
-        <UserButton />
+        {!isWorkspaceMode && <UserButton />}
       </div>
     </header>
   )

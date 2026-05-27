@@ -17,12 +17,37 @@ function CanvasLoading() {
   );
 }
 
-function CanvasConnectionError() {
+function CanvasConnectionError({ error }: { error?: Error }) {
+  const isAuth =
+    error?.message?.includes("403") ||
+    error?.message?.includes("401") ||
+    error?.message?.includes("Unauthorized") ||
+    error?.message?.includes("Forbidden");
+
+  const isService = error?.message?.includes("503");
+
   return (
-    <div className="w-full h-full bg-base flex items-center justify-center">
-      <p className="text-sm text-copy-muted">
-        Could not connect to the canvas. Refresh to try again.
+    <div className="w-full h-full bg-base flex flex-col items-center justify-center gap-3">
+      <p className="text-sm font-medium text-copy">
+        {isAuth
+          ? "You don't have access to this canvas."
+          : isService
+            ? "Authentication service is temporarily unavailable."
+            : "Could not connect to the canvas."}
       </p>
+      <p className="text-xs text-copy-muted">
+        {isAuth
+          ? "Ask the project owner to invite you."
+          : "Refresh the page to try again."}
+      </p>
+      {!isAuth && (
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-1 text-xs text-accent hover:underline"
+        >
+          Refresh
+        </button>
+      )}
     </div>
   );
 }
@@ -36,6 +61,18 @@ export function CanvasRoom({ roomId }: CanvasRoomProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ projectId: room }),
         });
+
+        if (!response.ok) {
+          let message = `Canvas auth failed (${response.status})`;
+          try {
+            const data = await response.json();
+            if (data?.error) message = `${data.error} (${response.status})`;
+          } catch {
+            // body wasn't JSON — keep the status-code message
+          }
+          throw new Error(message);
+        }
+
         return response.json();
       }}
     >
@@ -44,7 +81,7 @@ export function CanvasRoom({ roomId }: CanvasRoomProps) {
         initialPresence={{ cursor: null, thinking: false }}
       >
         <div className="relative w-full h-full">
-          <ErrorBoundary fallback={<CanvasConnectionError />}>
+          <ErrorBoundary fallback={({ error }) => <CanvasConnectionError error={error} />}>
             <ClientSideSuspense fallback={<CanvasLoading />}>
               <CanvasFlow />
             </ClientSideSuspense>

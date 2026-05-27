@@ -6,7 +6,6 @@ import type { CanvasNode, CanvasEdge } from "@/types/canvas";
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface UseCanvasAutosaveOptions {
-  projectId: string;
   nodes: CanvasNode[];
   edges: CanvasEdge[];
   debounceMs?: number;
@@ -17,12 +16,10 @@ interface UseCanvasAutosaveResult {
   triggerSave: () => void;
 }
 
-export function useCanvasAutosave({
-  projectId,
-  nodes,
-  edges,
-  debounceMs = 2000,
-}: UseCanvasAutosaveOptions): UseCanvasAutosaveResult {
+export function useCanvasAutosave(
+  projectId: string | null,
+  { nodes, edges, debounceMs = 2000 }: UseCanvasAutosaveOptions,
+): UseCanvasAutosaveResult {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -30,11 +27,16 @@ export function useCanvasAutosave({
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
 
-  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
-  useEffect(() => { edgesRef.current = edges; }, [edges]);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
 
   const save = useCallback(
     async (currentNodes: CanvasNode[], currentEdges: CanvasEdge[]) => {
+      if (!projectId) return;
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
       setSaveStatus("saving");
       try {
@@ -55,11 +57,18 @@ export function useCanvasAutosave({
   );
 
   const triggerSave = useCallback(() => {
+    if (!projectId) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     save(nodesRef.current, edgesRef.current);
-  }, [save]);
+  }, [projectId, save]);
 
   useEffect(() => {
+    if (!projectId) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      return;
+    }
+
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -73,7 +82,10 @@ export function useCanvasAutosave({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [nodes, edges, save, debounceMs]);
+  }, [projectId, nodes, edges, save, debounceMs]);
 
-  return { saveStatus, triggerSave };
+  return {
+    saveStatus: projectId ? saveStatus : "idle",
+    triggerSave,
+  };
 }

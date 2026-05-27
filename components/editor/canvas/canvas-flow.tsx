@@ -118,13 +118,10 @@ function CanvasFlowInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { saveStatus, triggerSave } = projectId
-    ? useCanvasAutosave({
-        projectId,
-        nodes,
-        edges,
-      })
-    : { saveStatus: "idle" as const, triggerSave: () => {} };
+  const { saveStatus, triggerSave } = useCanvasAutosave(projectId, {
+    nodes,
+    edges,
+  });
 
   useEffect(() => {
     setSaveStatus(saveStatus);
@@ -286,7 +283,6 @@ function CanvasFlowInner() {
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionMode={ConnectionMode.Loose}
-          fitView
         >
           <Background variant={BackgroundVariant.Dots} />
           <Cursors />

@@ -175,6 +175,12 @@ Update this file whenever the current phase, active feature, or implementation s
   - `hooks/use-keyboard-shortcuts.ts` — extended `UseKeyboardShortcutsOptions` with `onDelete`; handles `Delete` and `Backspace` at the `window` level by reading selected nodes/edges from the flow instance and calling `onDelete`; skips editable targets and no-ops when nothing is selected
   - `components/editor/canvas/canvas-flow.tsx` — passes `onDelete` (from `useLiveblocksFlow`) to `useKeyboardShortcuts` so window-level key events propagate through the Liveblocks-backed delete handler
   - `npx tsc --noEmit` passes
+- Bug Fixes (current-issue.md)
+  - `components/editor/canvas/canvas-node.tsx` — `Handles()` now renders both `type="source"` and `type="target"` handles at each of the four positions (top, right, bottom, left); source ids unchanged (`top`, `right`, `bottom`, `left`), target ids suffixed with `-t`; ensures connections can be initiated and received from all four handles
+  - `components/editor/canvas/canvas-flow.tsx` — removed `fitView` prop from `<ReactFlow>`; the prop was triggering an automatic zoom-in when the first node was added to an empty canvas, shifting the node's visual position and causing the apparent drop-offset bug; explicit `flow.fitView()` in the canvas-load `useEffect` is preserved
+  - `components/editor/editor-navbar.tsx` — `<UserButton />` is now conditionally rendered only when `!isWorkspaceMode`; in workspace context the UserButton is already provided by `<PresenceAvatars />` inside the canvas room
+  - `components/editor/canvas/canvas-flow.tsx` and `hooks/use-canvas-autosave.ts` — fixed React Hooks compliance by removing the conditional `useCanvasAutosave` call; the hook now accepts `projectId: string | null` as its first arg and always returns a unified `{ saveStatus, triggerSave }` shape, reporting `saveStatus: "idle"` and a no-op save behavior when `projectId` is null
+  - `npm run build` passes
 
 ## In Progress
 
@@ -182,7 +188,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
- - Feature 21 and beyond (canvas persistence, AI generation, etc.).
+- Feature 21 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 

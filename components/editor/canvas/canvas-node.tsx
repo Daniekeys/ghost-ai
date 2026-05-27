@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Fragment } from "react";
 import {
   Handle,
   Position,
@@ -46,7 +46,7 @@ const HANDLE_STYLE: React.CSSProperties = {
 };
 
 function Handles() {
-  const handles = [
+  const positions = [
     { id: "top", position: Position.Top },
     { id: "right", position: Position.Right },
     { id: "bottom", position: Position.Bottom },
@@ -55,15 +55,23 @@ function Handles() {
 
   return (
     <>
-      {handles.map((handle) => (
-        <Handle
-          key={handle.id}
-          id={handle.id}
-          type="source"
-          position={handle.position}
-          className="opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-          style={HANDLE_STYLE}
-        />
+      {positions.map(({ id, position }) => (
+        <Fragment key={id}>
+          <Handle
+            id={id}
+            type="source"
+            position={position}
+            className="opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+            style={HANDLE_STYLE}
+          />
+          <Handle
+            id={`${id}-t`}
+            type="target"
+            position={position}
+            className="opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+            style={HANDLE_STYLE}
+          />
+        </Fragment>
       ))}
     </>
   );
