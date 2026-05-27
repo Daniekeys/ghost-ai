@@ -17,6 +17,8 @@ const CURSOR_COLORS = [
   "#A1887F",
 ];
 
+type LiveblocksWriteAccesses = Record<string, ["room:write"]>;
+
 export function getCursorColor(userId: string): string {
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
@@ -32,4 +34,22 @@ export function getLiveblocksClient(): Liveblocks {
     });
   }
   return global.liveblocksGlobal;
+}
+
+export async function grantLiveblocksRoomAccess(
+  roomId: string,
+  userId: string,
+): Promise<void> {
+  const liveblocks = getLiveblocksClient();
+  const usersAccesses: LiveblocksWriteAccesses = {
+    [userId]: ["room:write"],
+  };
+
+  await liveblocks.upsertRoom(roomId, {
+    update: { usersAccesses },
+    create: {
+      defaultAccesses: [],
+      usersAccesses,
+    },
+  });
 }

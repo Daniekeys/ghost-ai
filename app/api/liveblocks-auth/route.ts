@@ -1,6 +1,10 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { checkProjectAccess } from "@/lib/project-access";
-import { getLiveblocksClient, getCursorColor } from "@/lib/liveblocks";
+import {
+  getLiveblocksClient,
+  getCursorColor,
+  grantLiveblocksRoomAccess,
+} from "@/lib/liveblocks";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -19,7 +23,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const user = await currentUser();
+  let user: Awaited<ReturnType<typeof currentUser>> = null;
+  try {
+    user = await currentUser();
+  } catch (err) {
+    console.error("[liveblocks-auth] currentUser() failed:", err);
+    return Response.json({ error: "Authentication service unavailable" }, { status: 503 });
+  }
+
   const userEmail = user?.primaryEmailAddress?.emailAddress ?? null;
 
   const access = await checkProjectAccess(projectId, userId, userEmail);
@@ -36,13 +47,7 @@ export async function POST(request: Request) {
   const color = getCursorColor(userId);
 
   const liveblocks = getLiveblocksClient();
-
-  await liveblocks.getOrCreateRoom(projectId, {
-    defaultAccesses: [],
-    usersAccesses: {
-      [userId]: ["room:write"],
-    },
-  });
+  await grantLiveblocksRoomAccess(projectId, userId);
 
   const { status, body } = await liveblocks.identifyUser(
     { userId, groupIds: [] },

@@ -8,6 +8,7 @@ interface UseKeyboardShortcutsOptions {
   flow: ReactFlowInstance<CanvasNode, CanvasEdge>;
   undo: () => void;
   redo: () => void;
+  onDelete: (params: { nodes: CanvasNode[]; edges: CanvasEdge[] }) => void;
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -26,6 +27,7 @@ export function useKeyboardShortcuts({
   flow,
   undo,
   redo,
+  onDelete,
 }: UseKeyboardShortcutsOptions) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -52,6 +54,16 @@ export function useKeyboardShortcuts({
 
       if (event.altKey || event.metaKey || event.ctrlKey) return;
 
+      if (event.key === "Delete") {
+        const selectedNodes = flow.getNodes().filter((n) => n.selected);
+        const selectedEdges = flow.getEdges().filter((e) => e.selected);
+        if (selectedNodes.length > 0 || selectedEdges.length > 0) {
+          event.preventDefault();
+          onDelete({ nodes: selectedNodes, edges: selectedEdges });
+        }
+        return;
+      }
+
       if (event.key === "+" || event.key === "=") {
         event.preventDefault();
         void flow.zoomIn({ duration: 160 });
@@ -66,5 +78,5 @@ export function useKeyboardShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flow, redo, undo]);
+  }, [flow, onDelete, redo, undo]);
 }

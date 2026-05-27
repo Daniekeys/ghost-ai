@@ -147,13 +147,48 @@ Update this file whenever the current phase, active feature, or implementation s
   - Width follow-up: increased the template dialog to an explicit `1120px` desktop width with `max-w-none` and wider card columns so the three templates sit comfortably side by side
   - `npm.cmd run build` passes
 
+- Feature 19: Presence Avatars & Live Cursors
+  - `liveblocks.config.ts` — renamed `Presence.isThinking` → `Presence.thinking` to match spec
+  - `components/editor/canvas/canvas-room.tsx` — updated `initialPresence` to `thinking: false`; wrapped `RoomProvider` children in `relative div` so `PresenceAvatars` can overlay the canvas; imports and renders `<PresenceAvatars />`
+  - `components/editor/canvas/presence-avatars.tsx` — new component; uses `useOthers()` (filtered against current Clerk user ID via `useUser()`) to render up to 5 overlapping collaborator avatars with photo or initials fallback, subtle `ring-2 ring-surface` ring, +N overflow chip; shows a divider only when collaborators exist; renders `UserButton` for the current user at matching size; positioned `absolute top-3 right-3 z-10` inside the canvas area
+  - `components/editor/canvas/canvas-flow.tsx` — imports `useUpdateMyPresence`; broadcasts canvas-coordinate cursor on `onMouseMove` (via `screenToFlowPosition`) and clears to `null` on `onMouseLeave` on the canvas wrapper div; existing `<Cursors />` from `@liveblocks/react-flow` renders the live colored pointers with name badges for other participants
+  - Editor home navbar unchanged; presence UI is canvas-view only
+  - `npm run build` passes
+
+- Feature 20: AI Sidebar Shell
+  - `components/editor/ai-sidebar.tsx` — extracted AI sidebar into its own component; accepts `isOpen` and `onClose` props controlled by the parent workspace context
+  - Header: `AI Workspace` title, `Collaborate with Ghost AI` subtitle, bot icon (`text-ai-text`), and close button aligned right
+  - Two-tab layout using shadcn `Tabs`: `AI Architect` and `Specs`; active tab styled with `bg-accent text-accent-foreground`, inactive with `text-copy-muted`
+  - AI Architect tab: scrollable chat area with empty state (bot icon, description, three starter prompt chips styled as `bg-subtle text-ai-text` pills); user messages right-aligned (`bg-accent-dim border-2 border-brand/50 text-copy-primary`); assistant messages left-aligned (`bg-elevated border border-surface-border text-ai-text`); auto-resizing textarea (min 72px, max 160px), Enter submits, Shift+Enter newline; Send button (`bg-brand text-base`)
+  - Specs tab: `Generate Spec` button (`bg-brand text-base`), demo spec card (`bg-elevated border-surface-border`) with file icon, title, snippet, and disabled Download action
+  - `components/editor/workspace-canvas.tsx` — replaced inline AI sidebar placeholder with `<AiSidebar isOpen={isAiSidebarOpen} onClose={toggleAiSidebar} />`; removed unused `Bot` and `Settings` lucide imports
+  - `npm run build` passes
+- Clerk server identity hardening
+  - `lib/project-access.ts` now derives `userId` from `auth()` before calling `currentUser()`, and catches `currentUser()` failures so Clerk Backend API errors do not crash `/editor/[roomId]` server rendering
+  - `npm.cmd run build` passes
+- Liveblocks collaborator access fix
+  - `lib/liveblocks.ts` now exposes `grantLiveblocksRoomAccess(roomId, userId)`, which upserts private rooms and patches the authenticated user's `room:write` access on existing rooms
+  - `app/api/liveblocks-auth/route.ts` now calls the grant helper after verifying Prisma project access, so invited collaborators receive matching Liveblocks room permissions before token issuance
+  - `npm.cmd run build` passes
+
+- Feature 21: Delete Nodes and Edges
+  - `hooks/use-keyboard-shortcuts.ts` — extended `UseKeyboardShortcutsOptions` with `onDelete`; handles `Delete` and `Backspace` at the `window` level by reading selected nodes/edges from the flow instance and calling `onDelete`; skips editable targets and no-ops when nothing is selected
+  - `components/editor/canvas/canvas-flow.tsx` — passes `onDelete` (from `useLiveblocksFlow`) to `useKeyboardShortcuts` so window-level key events propagate through the Liveblocks-backed delete handler
+  - `npx tsc --noEmit` passes
+- Bug Fixes (current-issue.md)
+  - `components/editor/canvas/canvas-node.tsx` — `Handles()` now renders both `type="source"` and `type="target"` handles at each of the four positions (top, right, bottom, left); source ids unchanged (`top`, `right`, `bottom`, `left`), target ids suffixed with `-t`; ensures connections can be initiated and received from all four handles
+  - `components/editor/canvas/canvas-flow.tsx` — removed `fitView` prop from `<ReactFlow>`; the prop was triggering an automatic zoom-in when the first node was added to an empty canvas, shifting the node's visual position and causing the apparent drop-offset bug; explicit `flow.fitView()` in the canvas-load `useEffect` is preserved
+  - `components/editor/editor-navbar.tsx` — `<UserButton />` is now conditionally rendered only when `!isWorkspaceMode`; in workspace context the UserButton is already provided by `<PresenceAvatars />` inside the canvas room
+  - `components/editor/canvas/canvas-flow.tsx` and `hooks/use-canvas-autosave.ts` — fixed React Hooks compliance by removing the conditional `useCanvasAutosave` call; the hook now accepts `projectId: string | null` as its first arg and always returns a unified `{ saveStatus, triggerSave }` shape, reporting `saveStatus: "idle"` and a no-op save behavior when `projectId` is null
+  - `npm run build` passes
+
 ## In Progress
 
 - None.
 
 ## Next Up
 
- - Feature 19 and beyond (canvas persistence, AI generation, etc.).
+- Feature 21 and beyond (canvas persistence, AI generation, etc.).
 
 ## Open Questions
 
