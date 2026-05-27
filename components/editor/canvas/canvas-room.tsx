@@ -81,7 +81,7 @@ export function CanvasRoom({ roomId }: CanvasRoomProps) {
         initialPresence={{ cursor: null, thinking: false }}
       >
         <div className="relative w-full h-full">
-          <ErrorBoundary fallback={({ error }) => <CanvasConnectionError error={error} />}>
+          <ErrorBoundary fallbackRender={({ error }) => <CanvasConnectionError error={error instanceof Error ? error : undefined} />}>
             <ClientSideSuspense fallback={<CanvasLoading />}>
               <CanvasFlow />
             </ClientSideSuspense>
