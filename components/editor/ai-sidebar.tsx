@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Bot, X, FileText, Download } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Bot, X, FileText, Download, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { useWorkspace } from "./workspace-provider"
 
 interface Message {
   id: string
@@ -28,17 +29,88 @@ interface AiSidebarProps {
 export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [pendingRunId, setPendingRunId] = useState<string | null>(null)
+  const scrollEndRef = useRef<HTMLDivElement>(null)
+
+  const { projectId, aiStatus } = useWorkspace()
+
+  // React to AI task status events relayed through workspace context
+  useEffect(() => {
+    if (!aiStatus || aiStatus.runId !== pendingRunId) return
+
+    if (aiStatus.type === "complete") {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          role: "assistant",
+          content:
+            "Done! The canvas has been updated with the generated architecture. Feel free to edit and refine it.",
+        },
+      ])
+      setIsLoading(false)
+      setPendingRunId(null)
+    } else if (aiStatus.type === "error") {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-err-${Date.now()}`,
+          role: "assistant",
+          content: aiStatus.message,
+        },
+      ])
+      setIsLoading(false)
+      setPendingRunId(null)
+    }
+  }, [aiStatus, pendingRunId])
+
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    scrollEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, isLoading])
 
   if (!isOpen) return null
 
-  function sendMessage(text: string) {
+  async function sendMessage(text: string) {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (!trimmed || isLoading) return
+
     setMessages((prev) => [
       ...prev,
-      { id: `${Date.now()}-${Math.random()}`, role: "user", content: trimmed },
+      { id: `user-${Date.now()}`, role: "user", content: trimmed },
     ])
     setInput("")
+    setIsLoading(true)
+
+    try {
+      const res = await fetch("/api/ai/design", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: trimmed,
+          roomId: projectId,
+          projectId,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error((err as { error?: string }).error ?? `Request failed (${res.status})`)
+      }
+
+      const { runId } = (await res.json()) as { runId: string }
+      setPendingRunId(runId)
+      // isLoading stays true until the AI_COMPLETE or AI_ERROR event arrives
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong."
+      setMessages((prev) => [
+        ...prev,
+        { id: `err-${Date.now()}`, role: "assistant", content: message },
+      ])
+      setIsLoading(false)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -105,7 +177,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
           className="flex-1 flex flex-col min-h-0 mt-2 overflow-hidden p-0"
         >
           <ScrollArea className="flex-1 min-h-0">
-            {messages.length === 0 ? (
+            {messages.length === 0 && !isLoading ? (
               <div className="flex flex-col items-center gap-4 py-8 px-3">
                 <div className="size-10 rounded-2xl bg-ai/20 flex items-center justify-center">
                   <Bot className="size-5 text-ai-text" />
@@ -125,7 +197,8 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
                       key={chip}
                       type="button"
                       onClick={() => sendMessage(chip)}
-                      className="text-left px-3 py-2 rounded-xl bg-subtle text-xs text-ai-text hover:bg-elevated transition-colors cursor-pointer"
+                      disabled={isLoading}
+                      className="text-left px-3 py-2 rounded-xl bg-subtle text-xs text-ai-text hover:bg-elevated transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {chip}
                     </button>
@@ -147,6 +220,17 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
                     {msg.content}
                   </div>
                 ))}
+                {isLoading && (
+                  <div className="self-start flex items-center gap-2 bg-elevated border border-surface-border rounded-xl px-3 py-2">
+                    <Loader2 className="size-3.5 text-ai-text animate-spin" />
+                    <span className="text-xs text-ai-text">
+                      {aiStatus?.type === "thinking"
+                        ? aiStatus.message
+                        : "Ghost AI is thinking…"}
+                    </span>
+                  </div>
+                )}
+                <div ref={scrollEndRef} />
               </div>
             )}
           </ScrollArea>
@@ -157,18 +241,27 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
               value={input}
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
-              placeholder="Describe an architecture…"
-              className="resize-none text-sm bg-elevated border-surface-border text-copy-primary placeholder:text-copy-faint overflow-y-auto"
+              placeholder={
+                isLoading
+                  ? "Waiting for Ghost AI…"
+                  : "Describe an architecture…"
+              }
+              disabled={isLoading}
+              className="resize-none text-sm bg-elevated border-surface-border text-copy-primary placeholder:text-copy-faint overflow-y-auto disabled:opacity-60"
               style={{ minHeight: "72px", maxHeight: "160px" }}
               rows={3}
             />
             <Button
               onClick={() => sendMessage(input)}
-              disabled={!input.trim()}
+              disabled={!input.trim() || isLoading}
               size="sm"
               className="self-end bg-brand text-base hover:bg-brand/90 disabled:opacity-40"
             >
-              Send
+              {isLoading ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                "Send"
+              )}
             </Button>
           </div>
         </TabsContent>

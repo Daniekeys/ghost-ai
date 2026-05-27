@@ -3,6 +3,12 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import type { SaveStatus } from '@/hooks/use-canvas-autosave'
 
+export interface AiTaskStatus {
+  message: string;
+  type: "thinking" | "complete" | "error";
+  runId: string;
+}
+
 interface WorkspaceContextValue {
   projectName: string | null
   setProjectName: (name: string | null) => void
@@ -26,6 +32,8 @@ interface WorkspaceContextValue {
   setSaveStatus: (s: SaveStatus) => void
   triggerSave: (() => void) | null
   setTriggerSave: (fn: (() => void) | null) => void
+  aiStatus: AiTaskStatus | null
+  setAiStatus: (status: AiTaskStatus | null) => void
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
@@ -41,6 +49,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [isStarterTemplatesOpen, setIsStarterTemplatesOpen] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [triggerSaveFn, setTriggerSaveFnState] = useState<{ fn: () => void } | null>(null)
+  const [aiStatus, setAiStatus] = useState<AiTaskStatus | null>(null)
 
   const setTriggerSave = useCallback((fn: (() => void) | null) => {
     setTriggerSaveFnState(fn ? { fn } : null)
@@ -71,6 +80,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setSaveStatus,
         triggerSave: triggerSaveFn?.fn ?? null,
         setTriggerSave,
+        aiStatus,
+        setAiStatus,
       }}
     >
       {children}

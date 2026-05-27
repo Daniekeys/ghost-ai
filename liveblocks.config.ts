@@ -16,7 +16,10 @@ declare global {
       };
     };
 
-    RoomEvent: {};
+    RoomEvent:
+      | { type: "AI_STATUS"; message: string; runId: string }
+      | { type: "AI_COMPLETE"; message: string; runId: string }
+      | { type: "AI_ERROR"; message: string; runId: string };
 
     ThreadMetadata: {};
 
