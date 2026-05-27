@@ -182,13 +182,36 @@ Update this file whenever the current phase, active feature, or implementation s
   - `components/editor/canvas/canvas-flow.tsx` and `hooks/use-canvas-autosave.ts` — fixed React Hooks compliance by removing the conditional `useCanvasAutosave` call; the hook now accepts `projectId: string | null` as its first arg and always returns a unified `{ saveStatus, triggerSave }` shape, reporting `saveStatus: "idle"` and a no-op save behavior when `projectId` is null
   - `npm run build` passes
 
+- Feature 22: Trigger.dev Setup
+  - `@trigger.dev/sdk` installed
+  - `trigger.config.ts` at project root — `project` placeholder must be replaced with ref from cloud.trigger.dev
+  - `trigger/generate-design.ts` — `generateDesign` task stub; accepts `projectId`, `prompt`, `canvasSnapshot`; TODOs for Anthropic call + Liveblocks room write
+  - `trigger/generate-spec.ts` — `generateSpec` task stub; accepts `projectId`, `canvasSnapshot`; TODOs for Anthropic call + Vercel Blob upload + Prisma Spec record
+  - `.env.local` — `TRIGGER_SECRET_KEY` placeholder added (value from cloud.trigger.dev > API Keys)
+  - Start local dev worker: `npx trigger dev`
+- Feature 22: Design Agent API (backend task wiring)
+  - `prisma/models/task-run.prisma` — `TaskRun` model (`runId` unique, `projectId`, `userId`, `createdAt`; index on `runId`, compound index on `userId`+`projectId`)
+  - Migration `20260527022320_add_task_run` applied to Prisma Postgres
+  - `trigger/design-agent.ts` — `designAgent` task (id `"design-agent"`, accepts `prompt` + `roomId`, logs input, TODOs for AI + Liveblocks)
+  - `app/api/ai/design/route.ts` — `POST`: verifies Clerk auth + project access, triggers `design-agent` task via Trigger.dev SDK, creates `TaskRun` record, returns `runId`
+  - `app/api/ai/design/token/route.ts` — `POST`: verifies Clerk auth, looks up `TaskRun` by `runId`+`userId` (ownership check), issues Trigger.dev public read token scoped to that run, returns `token`
+  - `npm run build` passes
+- Feature 23: Design Agent Logic (AI generation + canvas update)
+  - `trigger/design-agent.ts` — full implementation: Gemini (`gemini-1.5-flash-latest` via `@ai-sdk/google` + `generateObject`) generates structured node/edge schema; `liveblocks.setPresence` sets AI agent presence (`userId: "ai-ghost"`, `thinking: true/false`, TTL-based); `liveblocks.broadcastEvent` sends `AI_STATUS`/`AI_COMPLETE`/`AI_ERROR` events; `liveblocks.mutateStorage` writes nodes + edges directly into the `"flow"` LiveObject (LiveMap for nodes, LiveMap for edges); edges referencing missing nodes are silently skipped; error path broadcasts `AI_ERROR` and rethrows
+  - `liveblocks.config.ts` — `RoomEvent` typed as union: `AI_STATUS | AI_COMPLETE | AI_ERROR` (each with `message` and `runId`)
+  - `components/editor/workspace-provider.tsx` — added `AiTaskStatus` interface and `aiStatus`/`setAiStatus` to context; allows canvas and sidebar to share AI task progress without a direct Liveblocks hook crossing the RoomProvider boundary
+  - `components/editor/canvas/canvas-flow.tsx` — `useEventListener` bridges Liveblocks room events into workspace context `setAiStatus`; canvas-level `Panel position="top-center"` overlay shows thinking/complete/error with matching icon and message; overlay auto-clears after 6-8 s on terminal events
+  - `components/editor/ai-sidebar.tsx` — wired to `POST /api/ai/design` on send; tracks `pendingRunId`; `useEffect` on `aiStatus` adds assistant response message when matching run completes or errors; loading state disables input + shows spinner; starter chips disabled while loading
+  - `app/api/ai/design/route.ts` — passes `userId` in task payload; `runId` sourced from `ctx.run.id` inside the task
+  - `npm run build` passes
+
 ## In Progress
 
-- None.
+- None
 
 ## Next Up
 
-- Feature 21 and beyond (canvas persistence, AI generation, etc.).
+- Feature 24 and beyond (spec generation, canvas persistence, etc.).
 
 ## Open Questions
 

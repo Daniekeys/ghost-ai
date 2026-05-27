@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,13 +15,15 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
-import { useUpdateMyPresence } from "@liveblocks/react";
+import { useUpdateMyPresence, useEventListener } from "@liveblocks/react";
 import {
   useCanRedo,
   useCanUndo,
   useRedo,
   useUndo,
 } from "@liveblocks/react/suspense";
+import { Panel } from "@xyflow/react";
+import { Bot, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import "@liveblocks/react-ui/styles.css";
 import "@liveblocks/react-flow/styles.css";
@@ -84,9 +86,41 @@ function CanvasFlowInner() {
     setStarterTemplatesOpen,
     setSaveStatus,
     setTriggerSave,
+    setAiStatus,
   } = useWorkspace();
 
   const hasLoadedRef = useRef(false);
+  const statusClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [canvasAiMessage, setCanvasAiMessage] = useState<{
+    message: string;
+    type: "thinking" | "complete" | "error";
+  } | null>(null);
+
+  useEventListener(({ event }) => {
+    if (statusClearRef.current) clearTimeout(statusClearRef.current);
+
+    if (event.type === "AI_STATUS") {
+      const status = { message: event.message, type: "thinking" as const, runId: event.runId };
+      setAiStatus(status);
+      setCanvasAiMessage({ message: event.message, type: "thinking" });
+    } else if (event.type === "AI_COMPLETE") {
+      const status = { message: event.message, type: "complete" as const, runId: event.runId };
+      setAiStatus(status);
+      setCanvasAiMessage({ message: event.message, type: "complete" });
+      statusClearRef.current = setTimeout(() => {
+        setAiStatus(null);
+        setCanvasAiMessage(null);
+      }, 6000);
+    } else if (event.type === "AI_ERROR") {
+      const status = { message: event.message, type: "error" as const, runId: event.runId };
+      setAiStatus(status);
+      setCanvasAiMessage({ message: event.message, type: "error" });
+      statusClearRef.current = setTimeout(() => {
+        setAiStatus(null);
+        setCanvasAiMessage(null);
+      }, 8000);
+    }
+  });
 
   useEffect(() => {
     if (hasLoadedRef.current || !projectId) return;
@@ -286,6 +320,23 @@ function CanvasFlowInner() {
         >
           <Background variant={BackgroundVariant.Dots} />
           <Cursors />
+          {canvasAiMessage && (
+            <Panel position="top-center">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-elevated border border-surface-border shadow-lg text-sm">
+                {canvasAiMessage.type === "thinking" && (
+                  <Loader2 className="size-3.5 text-ai-text animate-spin shrink-0" />
+                )}
+                {canvasAiMessage.type === "complete" && (
+                  <CheckCircle className="size-3.5 text-success shrink-0" />
+                )}
+                {canvasAiMessage.type === "error" && (
+                  <AlertCircle className="size-3.5 text-error shrink-0" />
+                )}
+                <Bot className="size-3.5 text-ai-text shrink-0" />
+                <span className="text-copy-secondary">{canvasAiMessage.message}</span>
+              </div>
+            </Panel>
+          )}
           <CanvasControlBar
             flow={flow}
             canUndo={canUndo}

@@ -5,7 +5,9 @@
       "Bash(Select-Object FullName)",
       "Bash(npx shadcn@latest init --yes)",
       "Bash(yes \"\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)"
     ]
   }
 }
