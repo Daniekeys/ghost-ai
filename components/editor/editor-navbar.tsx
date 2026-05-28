@@ -1,6 +1,6 @@
 "use client"
 
-import { Bot, LayoutTemplate, PanelLeftClose, PanelLeftOpen, Share2 } from "lucide-react"
+import { Bot, LayoutTemplate, Loader2, PanelLeftClose, PanelLeftOpen, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UserButton } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
@@ -73,7 +73,11 @@ export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarPro
                 aria-label="Save canvas"
                 disabled={saveStatus === "saving"}
                 onClick={() => triggerSave?.()}
+                className="gap-1.5"
               >
+                {saveStatus === "saving" && (
+                  <Loader2 className="size-3.5 animate-spin" />
+                )}
                 {saveLabel}
               </Button>
             )}

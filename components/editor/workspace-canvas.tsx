@@ -7,7 +7,6 @@ import { CanvasRoom } from "./canvas/canvas-room";
 import { useWorkspace } from "./workspace-provider";
 import { useProjectDialogsContext } from "./project-dialogs-provider";
 import { ShareDialog } from "./dialogs/share-dialog";
-import { AiSidebar } from "./ai-sidebar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,8 +29,6 @@ export function WorkspaceCanvas({
     setProjectId,
     setIsOwner,
     setIsWorkspaceMode,
-    isAiSidebarOpen,
-    toggleAiSidebar,
     isWorkspaceSidebarOpen,
     toggleWorkspaceSidebar,
     isShareDialogOpen,
@@ -158,13 +155,10 @@ export function WorkspaceCanvas({
         </aside>
       )}
 
-      {/* Live collaborative canvas */}
+      {/* Live collaborative canvas + AI sidebar (rendered inside CanvasRoom's RoomProvider) */}
       <div className="flex-1 overflow-hidden">
         <CanvasRoom roomId={projectId} />
       </div>
-
-      {/* Right AI sidebar */}
-      <AiSidebar isOpen={isAiSidebarOpen} onClose={toggleAiSidebar} />
 
       <ShareDialog
         projectId={projectId}
