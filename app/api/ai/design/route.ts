@@ -1,11 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
-import { tasks } from "@trigger.dev/sdk";
+import { auth as clerkAuth } from "@clerk/nextjs/server";
+import { tasks, auth as triggerAuth } from "@trigger.dev/sdk";
 import type { designAgent } from "@/trigger/design-agent";
 import { prisma } from "@/lib/prisma";
 import { checkProjectAccess } from "@/lib/project-access";
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await clerkAuth();
   if (!userId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -40,5 +40,10 @@ export async function POST(request: Request) {
     data: { runId: handle.id, projectId, userId },
   });
 
-  return Response.json({ runId: handle.id }, { status: 201 });
+  const publicToken = await triggerAuth.createPublicToken({
+    scopes: { read: { runs: [handle.id] } },
+    expirationTime: "2h",
+  });
+
+  return Response.json({ runId: handle.id, publicToken }, { status: 201 });
 }

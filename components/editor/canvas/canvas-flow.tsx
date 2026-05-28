@@ -21,6 +21,7 @@ import {
   useCanUndo,
   useRedo,
   useUndo,
+  useMutation,
 } from "@liveblocks/react/suspense";
 import { Panel } from "@xyflow/react";
 import { Bot, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
@@ -30,10 +31,12 @@ import "@liveblocks/react-flow/styles.css";
 import { CanvasNodeComponent } from "./canvas-node";
 import { CanvasEdgeComponent } from "./canvas-edge";
 import { CanvasControlBar } from "./canvas-control-bar";
+import { CanvasCursor } from "./canvas-cursor";
 import { ShapePanel, type ShapeDragPayload } from "./shape-panel";
 import { CanvasActionsContext } from "./canvas-actions-context";
 import { StarterTemplatesModal } from "../starter-templates-modal";
 import { useWorkspace } from "../workspace-provider";
+import type { AiStatusFeedPayload } from "@/types/tasks";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useCanvasAutosave } from "@/hooks/use-canvas-autosave";
 import {
@@ -96,6 +99,13 @@ function CanvasFlowInner() {
     type: "thinking" | "complete" | "error";
   } | null>(null);
 
+  const setAiStatusFeed = useMutation(
+    ({ storage }, payload: AiStatusFeedPayload | null) => {
+      storage.set("aiStatusFeed", payload);
+    },
+    [],
+  );
+
   useEventListener(({ event }) => {
     if (statusClearRef.current) clearTimeout(statusClearRef.current);
 
@@ -103,21 +113,26 @@ function CanvasFlowInner() {
       const status = { message: event.message, type: "thinking" as const, runId: event.runId };
       setAiStatus(status);
       setCanvasAiMessage({ message: event.message, type: "thinking" });
+      setAiStatusFeed({ ...status, timestamp: Date.now() });
     } else if (event.type === "AI_COMPLETE") {
       const status = { message: event.message, type: "complete" as const, runId: event.runId };
       setAiStatus(status);
       setCanvasAiMessage({ message: event.message, type: "complete" });
+      setAiStatusFeed({ ...status, timestamp: Date.now() });
       statusClearRef.current = setTimeout(() => {
         setAiStatus(null);
         setCanvasAiMessage(null);
+        setAiStatusFeed(null);
       }, 6000);
     } else if (event.type === "AI_ERROR") {
       const status = { message: event.message, type: "error" as const, runId: event.runId };
       setAiStatus(status);
       setCanvasAiMessage({ message: event.message, type: "error" });
+      setAiStatusFeed({ ...status, timestamp: Date.now() });
       statusClearRef.current = setTimeout(() => {
         setAiStatus(null);
         setCanvasAiMessage(null);
+        setAiStatusFeed(null);
       }, 8000);
     }
   });
@@ -319,7 +334,7 @@ function CanvasFlowInner() {
           connectionMode={ConnectionMode.Loose}
         >
           <Background variant={BackgroundVariant.Dots} />
-          <Cursors />
+          <Cursors components={{ Cursor: CanvasCursor }} />
           {canvasAiMessage && (
             <Panel position="top-center">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-elevated border border-surface-border shadow-lg text-sm">

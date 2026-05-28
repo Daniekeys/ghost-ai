@@ -278,7 +278,7 @@ export function ShareDialog({
                     setInviteError(null);
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleInvite()}
-                  className="flex-1 h-9 text-sm bg-elevated border-surface-border rounded-xl"
+                  className="flex-1 h-9 text-sm text-white bg-elevated border-surface-border rounded-xl"
                 />
                 <Button
                   size="sm"

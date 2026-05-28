@@ -1,3 +1,5 @@
+import { LiveList } from "@liveblocks/client";
+
 declare global {
   interface Liveblocks {
     Presence: {
@@ -5,7 +7,23 @@ declare global {
       thinking: boolean;
     };
 
-    Storage: {};
+    Storage: {
+      aiStatusFeed: {
+        message: string;
+        type: "thinking" | "complete" | "error";
+        runId: string;
+        timestamp: number;
+        text?: string;
+      } | null;
+      aiChat: LiveList<{
+        id: string;
+        sender: { id: string; name: string };
+        role: "user" | "assistant";
+        content: string;
+        timestamp: number;
+        source?: "architect" | "chat";
+      }>;
+    };
 
     UserMeta: {
       id: string;

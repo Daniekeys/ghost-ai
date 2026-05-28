@@ -205,13 +205,58 @@ Update this file whenever the current phase, active feature, or implementation s
   - `app/api/ai/design/route.ts` — passes `userId` in task payload; `runId` sourced from `ctx.run.id` inside the task
   - `npm run build` passes
 
+- Feature 24: AI Presence State
+  - `types/tasks.ts` — `AiStatusFeedPayloadSchema` (zod) with `message`, `type`, `runId`, `text?`, `timestamp`; validates all incoming feed messages before display
+  - `liveblocks.config.ts` — `Storage.aiStatusFeed` typed as `{ message, type, runId, timestamp, text? } | null`; single source of truth for shared AI activity
+  - `components/editor/canvas/canvas-cursor.tsx` — custom `CanvasCursor` component for `<Cursors components={{ Cursor }}>`: reads `thinking` from other user's presence via `useOther`; shows `Loader2` spinner in the name badge when `thinking: true`
+  - `components/editor/canvas/canvas-flow.tsx` — added `useMutation` to write to `aiStatusFeed` in Storage on `AI_STATUS`/`AI_COMPLETE`/`AI_ERROR` events; clears feed to `null` after terminal-event timeout; passes `CanvasCursor` as custom cursor renderer
+  - `components/editor/canvas/canvas-room.tsx` — added `initialStorage={{ aiStatusFeed: null }}` to `RoomProvider`; moved `AiSidebar` rendering inside the `RoomProvider` boundary so it can access Liveblocks Storage; renders as flex row (canvas + sidebar)
+  - `components/editor/ai-sidebar.tsx` — replaced workspace context `aiStatus` bridge with `useStorage((root) => root.aiStatusFeed)` from `@liveblocks/react`; validates feed via `AiStatusFeedPayloadSchema.safeParse`; derives `feedIsThinking` from validated feed; shared status indicator strip appears for ALL room members when AI is active; `inputDisabled = isLoading || feedIsThinking` disables input for everyone during generation
+  - `components/editor/workspace-canvas.tsx` — removed `AiSidebar` import and render (now inside `CanvasRoom`); removed unused `isAiSidebarOpen`/`toggleAiSidebar` destructuring
+  - `npm run build` passes
+
+- Feature 25: Sidebar Chat Feed
+  - `types/tasks.ts` — `ChatMessageSchema` (zod) with `id`, `sender` (`id`, `name`), `role` (`"user"`), `content`, `timestamp`; `ChatMessage` type alias
+  - `liveblocks.config.ts` — `Storage.aiChat` typed as `LiveList<{...}>` (separate from `aiStatusFeed`); `LiveList` imported from `@liveblocks/client`
+  - `components/editor/canvas/canvas-room.tsx` — `initialStorage` extended with `aiChat: new LiveList([])`
+  - `components/editor/ai-sidebar.tsx` — added "Chat" tab (third tab alongside Architect and Specs); subscribes to `aiChat` via `useStorage`; sends messages via `useMutation` appending to the `LiveList`; validates each incoming message via `ChatMessageSchema.safeParse` before rendering; shows sender name, relative timestamp, and content per message; own messages right-aligned with brand border, others left-aligned; input clears on successful send; shows small error text if mutation throws; input and send disabled while storage or self not yet loaded; `useSelf` from `@liveblocks/react` provides current user id and name
+  - `npm run build` passes
+
+- Feature 26: Design Agent Frontend
+  - `types/tasks.ts` — `ChatMessageSchema.role` widened to `z.enum(["user", "assistant"])`; added optional `source: z.enum(["architect", "chat"])` field to separate tab messages
+  - `liveblocks.config.ts` — `Storage.aiChat` updated to `role: "user" | "assistant"` and `source?: "architect" | "chat"`
+  - `app/api/ai/design/route.ts` — after triggering task, creates a scoped `publicToken` via `triggerAuth.createPublicToken` and returns `{ runId, publicToken }` in the response
+  - `components/editor/ai-sidebar.tsx` — `useRealtimeRun` (from `@trigger.dev/react-hooks`) tracks run status in real time; on submit: pushes user message to `aiChat` with `source: "architect"`, calls `POST /api/ai/design`, stores `runId` + `publicToken`; `useEffect` on `activeRun.status` pushes AI response to `aiChat` on terminal status and resets loading state; architect tab reads and displays only `source === "architect"` messages; chat tab filters to `source === "chat"` (or untagged); removed header-level status strip; added compact status strip above input in architect tab (dark base + brand accent pulse); user bubbles: `bg-brand text-white`; AI bubbles: dark elevated + `text-ai-text`; input disabled and spinner shown while run is active; `feedIsThinking` from `aiStatusFeed` provides collaborative blocking so all clients see active state
+  - `npx tsc --noEmit` passes
+
+- Feature 27: Spec Generation Flow (backend)
+  - `app/api/ai/spec/route.ts` — `POST`: authenticates user via Clerk; validates body (`roomId`, `chatHistory`, `nodes`, `edges`) with Zod; resolves project access from `roomId` via `checkProjectAccess` (never trusts client-supplied `projectId`); triggers `generate-spec` task; creates `TaskRun` record; returns `runId`
+  - `app/api/ai/spec/token/route.ts` — `POST`: authenticates user; validates `runId` with Zod; verifies `TaskRun` ownership via Prisma; issues Trigger.dev public read token scoped to that run (1h expiry); returns token
+  - `trigger/generate-spec.ts` — `generateSpec` `schemaTask`; Zod schema validates `projectId`, `roomId`, `chatHistory`, `nodes`, `edges`; builds structured prompt from node/edge graph + chat context; calls OpenRouter (`google/gemini-2.0-flash-001`) for Markdown spec generation; updates run metadata (`status`, `progress`) for realtime tracking; returns `{ spec: string }` as plain Markdown task output
+  - `npx tsc --noEmit` passes
+
+- Feature 28: Spec Persistence & Download
+  - `prisma/models/project-spec.prisma` — `ProjectSpec` model (`id`, `projectId` FK with cascade delete, `filePath` Blob URL, `createdAt`; indexes on `projectId` and `projectId+createdAt`)
+  - `prisma/models/project.prisma` — added `specs ProjectSpec[]` relation to `Project`
+  - Migration `20260527211341_add_project_spec` applied to Prisma Postgres
+  - `trigger/generate-spec.ts` — after AI generation, uploads Markdown to Vercel Blob at `specs/{projectId}/{specId}.md` (private, `text/markdown`); creates `ProjectSpec` record in DB with blob URL; returns `{ spec, specId }` from task
+  - `app/api/projects/[projectId]/specs/[specId]/download/route.ts` — `GET`: authenticates user via Clerk; verifies project access via `checkProjectAccess`; verifies spec belongs to that project via Prisma; fetches blob using stored `filePath`; returns Markdown as `attachment; filename="spec-{specId}.md"`; returns 401/403/404 appropriately
+  - `npm run build` passes
+
+- Feature 29: Spec UI Integration
+  - `app/api/projects/[projectId]/specs/route.ts` — `GET` lists specs for a project (newest first); returns `id` and `createdAt` only — blob URL never sent to client
+  - `components/editor/ai-sidebar.tsx` — Specs tab replaced with live implementation: fetches spec list on tab activation; compact clickable list items (truncated ID-based filename + formatted date + hover-revealed download button); preview Dialog fetches content via existing download endpoint and renders it as Markdown using `react-markdown` (dynamic import, ssr:false); download action uses anchor-click pattern to trigger browser file download; Tabs converted from `defaultValue` to controlled `value/onValueChange` to drive the fetch effect
+  - `app/globals.css` — added `.prose-spec` CSS class to style rendered Markdown elements (headings, paragraphs, lists, code, blockquote, etc.) using project CSS custom property tokens; no @tailwindcss/typography dependency
+  - `react-markdown` installed (ESM-only, loaded via `next/dynamic`)
+  - `npm run build` passes
+
 ## In Progress
 
 - None
 
 ## Next Up
 
-- Feature 24 and beyond (spec generation, canvas persistence, etc.).
+- Feature 30 and beyond.
 
 ## Open Questions
 

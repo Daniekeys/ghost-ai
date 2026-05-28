@@ -24,6 +24,7 @@ export function EditorShell({ children, ownedProjects, sharedProjects }: EditorS
     selectedProject,
     formName,
     formSlug,
+    isPending,
     setFormName,
     openCreateDialog,
     openRenameDialog,
@@ -70,6 +71,7 @@ export function EditorShell({ children, ownedProjects, sharedProjects }: EditorS
         open={activeDialog === "create"}
         name={formName}
         slug={formSlug}
+        isLoading={isPending}
         onNameChange={setFormName}
         onConfirm={handleCreate}
         onClose={closeDialogs}
@@ -79,6 +81,7 @@ export function EditorShell({ children, ownedProjects, sharedProjects }: EditorS
         open={activeDialog === "rename"}
         project={selectedProject}
         name={formName}
+        isLoading={isPending}
         onNameChange={setFormName}
         onConfirm={handleRename}
         onClose={closeDialogs}
@@ -87,6 +90,7 @@ export function EditorShell({ children, ownedProjects, sharedProjects }: EditorS
       <DeleteProjectDialog
         open={activeDialog === "delete"}
         project={selectedProject}
+        isLoading={isPending}
         onConfirm={handleDelete}
         onClose={closeDialogs}
       />

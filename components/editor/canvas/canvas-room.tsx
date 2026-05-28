@@ -1,9 +1,12 @@
 "use client";
 
+import { LiveList } from "@liveblocks/client";
 import { LiveblocksProvider, RoomProvider, ClientSideSuspense } from "@liveblocks/react/suspense";
 import { ErrorBoundary } from "react-error-boundary";
 import { CanvasFlow } from "./canvas-flow";
 import { PresenceAvatars } from "./presence-avatars";
+import { AiSidebar } from "../ai-sidebar";
+import { useWorkspace } from "../workspace-provider";
 
 interface CanvasRoomProps {
   roomId: string;
@@ -53,6 +56,8 @@ function CanvasConnectionError({ error }: { error?: Error }) {
 }
 
 export function CanvasRoom({ roomId }: CanvasRoomProps) {
+  const { isAiSidebarOpen, toggleAiSidebar } = useWorkspace();
+
   return (
     <LiveblocksProvider
       authEndpoint={async (room) => {
@@ -79,14 +84,18 @@ export function CanvasRoom({ roomId }: CanvasRoomProps) {
       <RoomProvider
         id={roomId}
         initialPresence={{ cursor: null, thinking: false }}
+        initialStorage={{ aiStatusFeed: null, aiChat: new LiveList([]) }}
       >
-        <div className="relative w-full h-full">
-          <ErrorBoundary fallbackRender={({ error }) => <CanvasConnectionError error={error instanceof Error ? error : undefined} />}>
-            <ClientSideSuspense fallback={<CanvasLoading />}>
-              <CanvasFlow />
-            </ClientSideSuspense>
-          </ErrorBoundary>
-          <PresenceAvatars />
+        <div className="flex h-full w-full">
+          <div className="relative flex-1 overflow-hidden">
+            <ErrorBoundary fallbackRender={({ error }) => <CanvasConnectionError error={error instanceof Error ? error : undefined} />}>
+              <ClientSideSuspense fallback={<CanvasLoading />}>
+                <CanvasFlow />
+              </ClientSideSuspense>
+            </ErrorBoundary>
+            <PresenceAvatars />
+          </div>
+          <AiSidebar isOpen={isAiSidebarOpen} onClose={toggleAiSidebar} />
         </div>
       </RoomProvider>
     </LiveblocksProvider>
