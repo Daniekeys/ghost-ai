@@ -87,6 +87,11 @@
     --state-success:      #34d399;
     --state-warning:      #fbbf24;
 
+    /* ── Shadow tokens ───────────────────────────── */
+    --shadow-glow-cyan: 0 0 60px rgba(0, 200, 212, 0.12);
+    --shadow-glow-ai:   0 0 60px rgba(100, 87, 249, 0.18);
+    --shadow-card:      0 8px 32px rgba(0, 0, 0, 0.5);
+
     /* ── shadcn variables (dark theme) ────────────── */
     --background:                #080809;
     --foreground:                #f0f0f4;
@@ -198,3 +203,63 @@
 }
 .prose-spec strong { color: var(--text-primary); font-weight: 600; }
 .prose-spec em { color: var(--text-secondary); }
+
+/* ── Landing page reveal ─────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Landing page animations ─────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes cta-pulse {
+    0%   { box-shadow: 0 0 60px rgba(0,200,212,0.12); }
+    50%  { box-shadow: 0 0 80px rgba(0,200,212,0.28); }
+    100% { box-shadow: 0 0 60px rgba(0,200,212,0.12); }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes spin-pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.3); }
+  }
+
+  @keyframes drift-1 {
+    0%, 100% { transform: translate(0, 0); }
+    33%       { transform: translate(6px, -4px); }
+    66%       { transform: translate(-3px, 5px); }
+  }
+
+  @keyframes drift-2 {
+    0%, 100% { transform: translate(0, 0); }
+    25%       { transform: translate(-5px, 6px); }
+    75%       { transform: translate(4px, -3px); }
+  }
+
+  @keyframes line-draw {
+    from { stroke-dashoffset: 500; }
+    to   { stroke-dashoffset: 0; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

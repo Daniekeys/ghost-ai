@@ -125,7 +125,7 @@ export const designAgent = task({
             "X-Title": "Design Agent",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.0-flash-001",
+            model: "google/gemini-2.0-flash",
             response_format: { type: "json_object" },
             messages: [
               {

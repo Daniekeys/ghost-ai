@@ -250,13 +250,20 @@ Update this file whenever the current phase, active feature, or implementation s
   - `react-markdown` installed (ESM-only, loaded via `next/dynamic`)
   - `npm run build` passes
 
+- Phase 1 Landing Page
+  - `proxy.ts` — `/` added to public routes so unauthenticated visitors can access the landing page
+  - `app/page.tsx` — server component: redirects authenticated users to `/editor`; renders `<LandingPage />` for unauthenticated visitors
+  - `app/globals.css` — added `--shadow-glow-cyan`, `--shadow-glow-ai`, `--shadow-card` tokens; added `@keyframes` (fade-up, cta-pulse, spin, spin-pulse, drift-1, drift-2, line-draw) wrapped in `@media (prefers-reduced-motion: no-preference)`; added `.reveal` / `.reveal.visible` scroll-reveal classes
+  - `components/landing/landing-page.tsx` — full 10-section marketing landing page: Navbar (sticky, scroll shadow, mobile hamburger overlay), Hero (animated headline, CTA buttons with glow pulse, browser-chrome canvas mock with 5 nodes, SVG connection lines with draw-in animation, live cursor indicators, AI thinking badge), Social Proof Strip, Features Bento Grid (7 cards, 2-col wide spans, mini visual extras per card), How It Works (3 steps, dashed connector, scroll reveal), Templates Showcase (3 cards with mini canvas previews), Testimonials (3 cards), Pricing (monthly/annual toggle, 3 plans, featured Pro card), Final CTA (radial gradient, glow button), Footer (4-col grid, social icons, bottom bar). IntersectionObserver wires `.reveal` on mount. All animations CSS-only. Focus-visible outlines on all interactive elements. Responsive at 480/768/1024px breakpoints.
+  - `npx tsc --noEmit` passes
+
 ## In Progress
 
 - None
 
 ## Next Up
 
-- Feature 30 and beyond.
+- Phase 2 and beyond.
 
 ## Open Questions
 
