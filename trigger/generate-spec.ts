@@ -3,6 +3,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { put } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
+import { Agent } from "@/lib/openrouter-agent";
 
 const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -126,30 +127,13 @@ ${chatContext}`;
 
     logger.info("Calling OpenRouter for spec generation");
 
-    const orResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPEN_ROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "Spec Generator",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
-        messages: [
-          { role: "system", content: SPEC_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-      }),
+    const agent = new Agent({
+      model: "anthropic/claude-3.5-haiku",
+      instructions: SPEC_SYSTEM_PROMPT,
+      appTitle: "Spec Generator",
     });
 
-    if (!orResponse.ok) {
-      const errText = await orResponse.text();
-      throw new Error(`OpenRouter API error ${orResponse.status}: ${errText}`);
-    }
-
-    const orData = await orResponse.json();
-    const specContent: string | undefined = orData.choices?.[0]?.message?.content;
+    const specContent = await agent.send(userPrompt);
 
     if (!specContent) {
       throw new Error("OpenRouter returned an empty response");

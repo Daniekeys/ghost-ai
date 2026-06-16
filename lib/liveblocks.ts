@@ -36,6 +36,23 @@ export function getLiveblocksClient(): Liveblocks {
   return global.liveblocksGlobal;
 }
 
+export async function ensureLiveblocksRoom(roomId: string): Promise<void> {
+  const secret = process.env.LIVEBLOCKS_SECRET_KEY;
+  if (!secret) {
+    throw new Error("LIVEBLOCKS_SECRET_KEY is not set in this environment");
+  }
+  if (!secret.startsWith("sk_")) {
+    throw new Error(
+      `LIVEBLOCKS_SECRET_KEY must be a secret key starting with "sk_" — got a key starting with "${secret.slice(0, 3)}". Check your env vars.`,
+    );
+  }
+  const liveblocks = getLiveblocksClient();
+  await liveblocks.upsertRoom(roomId, {
+    update: {},
+    create: { defaultAccesses: [] },
+  });
+}
+
 export async function grantLiveblocksRoomAccess(
   roomId: string,
   userId: string,

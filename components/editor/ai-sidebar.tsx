@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { Bot, X, FileText, Download, Loader2 } from "lucide-react"
 import { useStorage, useSelf, useMutation } from "@liveblocks/react"
@@ -49,13 +49,15 @@ interface RunTrackerProps {
 }
 
 function RunTracker({ runId, accessToken, onTerminal }: RunTrackerProps) {
-  const { run } = useRealtimeRun(runId, { accessToken })
+  const { run, error } = useRealtimeRun(runId, { accessToken })
 
   useEffect(() => {
+    console.log("[REALTIME] status:", run?.status, "| run.error:", run?.error, "| hookError:", error)
     if (run && TERMINAL_STATUSES.has(run.status)) {
+      console.log("[REALTIME] terminal:", run.status, run.error)
       onTerminal(run.status)
     }
-  }, [run?.status, onTerminal])
+  }, [run?.status, run?.error, error, onTerminal])
 
   return null
 }
@@ -187,19 +189,22 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
     }
   }
 
-  function handleSpecTerminal(status: string) {
-    setSpecGenerating(false)
-    setSpecRunId(null)
-    setSpecRunToken(null)
-    if (status === "COMPLETED" && projectId) {
-      setSpecsLoading(true)
-      fetch(`/api/projects/${projectId}/specs`)
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((data: { specs: SpecItem[] }) => setSpecs(data.specs ?? []))
-        .catch(() => {})
-        .finally(() => setSpecsLoading(false))
-    }
-  }
+  const handleSpecTerminal = useCallback(
+    (status: string) => {
+      setSpecGenerating(false)
+      setSpecRunId(null)
+      setSpecRunToken(null)
+      if (status === "COMPLETED" && projectId) {
+        setSpecsLoading(true)
+        fetch(`/api/projects/${projectId}/specs`)
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((data: { specs: SpecItem[] }) => setSpecs(data.specs ?? []))
+          .catch(() => {})
+          .finally(() => setSpecsLoading(false))
+      }
+    },
+    [projectId],
+  )
 
   function downloadSpec(specId: string) {
     const a = document.createElement("a")
@@ -224,22 +229,25 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
     }
   }
 
-  const handleTerminalStatus = (status: string) => {
-    const isSuccess = status === "COMPLETED"
-    appendChatMessage({
-      id: `ai-${Date.now()}`,
-      sender: { id: "ai-ghost", name: "Ghost AI" },
-      role: "assistant",
-      content: isSuccess
-        ? "Done! The canvas has been updated with the generated architecture. Feel free to edit and refine it."
-        : "Failed to generate architecture. Please try again.",
-      timestamp: Date.now(),
-      source: "architect",
-    })
-    setIsLoading(false)
-    setPendingRunId(null)
-    setPublicToken(null)
-  }
+  const handleTerminalStatus = useCallback(
+    (status: string) => {
+      const isSuccess = status === "COMPLETED"
+      appendChatMessage({
+        id: `ai-${Date.now()}`,
+        sender: { id: "ai-ghost", name: "Ghost AI" },
+        role: "assistant",
+        content: isSuccess
+          ? "Done! The canvas has been updated with the generated architecture. Feel free to edit and refine it."
+          : "Failed to generate architecture. Please try again.",
+        timestamp: Date.now(),
+        source: "architect",
+      })
+      setIsLoading(false)
+      setPendingRunId(null)
+      setPublicToken(null)
+    },
+    [appendChatMessage],
+  )
 
   // Scroll to bottom when architect messages change
   useEffect(() => {
@@ -253,13 +261,25 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
 
   if (!isOpen) return null
 
-  const inputDisabled = isLoading || feedIsThinking
+  const inputDisabled = isLoading || feedIsThinking || !projectId
   const chatStorageReady = rawChatMessages !== null
   const chatSendDisabled = !chatInput.trim() || !self || !chatStorageReady
 
   async function sendMessage(text: string) {
     const trimmed = text.trim()
     if (!trimmed || inputDisabled) return
+
+    if (!projectId) {
+      appendChatMessage({
+        id: `err-${Date.now()}`,
+        sender: { id: "ai-ghost", name: "Ghost AI" },
+        role: "assistant",
+        content: "Open a project before asking Ghost AI to generate an architecture.",
+        timestamp: Date.now(),
+        source: "architect",
+      })
+      return
+    }
 
     appendChatMessage({
       id: `user-${Date.now()}`,
@@ -277,7 +297,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
       const res = await fetch("/api/ai/design", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: trimmed, roomId: projectId, projectId }),
+        body: JSON.stringify({ prompt: trimmed, projectId }),
       })
 
       if (!res.ok) {
