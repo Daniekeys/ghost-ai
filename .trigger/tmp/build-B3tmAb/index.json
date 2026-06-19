@@ -1,0 +1,99 @@
+{
+  "configPath": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger.config.mjs",
+  "customConditions": [
+  ],
+  "prompts": [
+  ],
+  "queues": [
+  ],
+  "runtime": "node-22",
+  "runtimeVersion": "25.8.0",
+  "tasks": [
+    {
+      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger\\design-agent.mjs",
+      "filePath": "trigger/design-agent.ts",
+      "id": "design-agent",
+      "maxDuration": 300,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000
+      }
+    },
+    {
+      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger\\generate-design.mjs",
+      "filePath": "trigger/generate-design.ts",
+      "id": "generate-design",
+      "maxDuration": 300,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000
+      }
+    },
+    {
+      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger\\generate-spec.mjs",
+      "filePath": "trigger/generate-spec.ts",
+      "id": "generate-spec",
+      "maxDuration": 300,
+      "payloadSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "chatHistory": {
+            "default": [
+            ],
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "role": {
+                  "enum": [
+                    "user",
+                    "assistant"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "role",
+                "content"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "roomId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "roomId",
+          "chatHistory"
+        ],
+        "type": "object"
+      },
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000,
+        "randomize": true
+      }
+    }
+  ],
+  "timings": {
+    "trigger/design-agent.ts": 43.572100000000034,
+    "trigger/generate-design.ts": 1.2685999999999922,
+    "trigger/generate-spec.ts": 277.7932
+  },
+  "workerEntryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\AppData\\Local\\npm-cache\\_npx\\f51a09bd0abf5f10\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs"
+}

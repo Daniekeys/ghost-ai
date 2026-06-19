@@ -4,43 +4,44 @@ import { randomUUID } from "crypto";
 import { put } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 import { Agent } from "@/lib/openrouter-agent";
+import { getLiveblocksClient } from "@/lib/liveblocks";
 
 const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.string(),
 });
 
-const nodeSchema = z.object({
-  id: z.string(),
-  position: z.object({ x: z.number(), y: z.number() }).optional(),
-  data: z
-    .object({
-      label: z.string(),
-      shape: z.string().optional(),
-      color: z.string().optional(),
-      textColor: z.string().optional(),
-    })
-    .optional(),
-});
-
-const edgeSchema = z.object({
-  id: z.string(),
-  source: z.string(),
-  target: z.string(),
-  data: z
-    .object({
-      label: z.string().optional(),
-    })
-    .optional(),
-});
-
 const payloadSchema = z.object({
   projectId: z.string().min(1),
   roomId: z.string().min(1),
   chatHistory: z.array(chatMessageSchema).default([]),
-  nodes: z.array(nodeSchema).default([]),
-  edges: z.array(edgeSchema).default([]),
 });
+
+type CanvasNode = {
+  id: string;
+  position?: { x: number; y: number };
+  data?: { label: string; shape?: string; color?: string; textColor?: string };
+};
+
+type CanvasEdge = {
+  id: string;
+  source: string;
+  target: string;
+  data?: { label?: string };
+};
+
+type LiveblocksStorageJson = {
+  flow?: {
+    nodes?: Record<string, CanvasNode>;
+    edges?: Record<string, CanvasEdge>;
+  };
+  aiChat?: Array<{
+    id?: string;
+    role: "user" | "assistant";
+    content: string;
+    source?: "architect" | "chat";
+  }>;
+};
 
 const SPEC_SYSTEM_PROMPT = `You are Ghost AI, an expert software architect and technical writer. Generate a comprehensive Markdown technical specification based on the provided system architecture diagram and conversation context.
 
@@ -73,18 +74,55 @@ export const generateSpec = schemaTask({
     randomize: true,
   },
   run: async (payload) => {
-    const { projectId, roomId, chatHistory, nodes, edges } = payload;
+    const { projectId, roomId, chatHistory } = payload;
 
-    logger.info("Spec generation started", {
-      projectId,
-      roomId,
-      nodeCount: nodes.length,
-      edgeCount: edges.length,
-      chatMessages: chatHistory.length,
-    });
+    logger.info("Spec generation started", { projectId, roomId });
+
+    metadata.set("status", "fetching-canvas");
+    metadata.set("progress", 0);
+
+    // Read canvas state directly from Liveblocks storage — always authoritative,
+    // never stale unlike the Vercel Blob which only updates on autosave.
+    const liveblocks = getLiveblocksClient();
+    let nodes: CanvasNode[] = [];
+    let edges: CanvasEdge[] = [];
+    let architectChat: typeof chatHistory = chatHistory;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const storage = await liveblocks.getStorageDocument(roomId, "json") as any as LiveblocksStorageJson;
+
+      nodes = storage.flow?.nodes ? Object.values(storage.flow.nodes) : [];
+      edges = storage.flow?.edges ? Object.values(storage.flow.edges) : [];
+
+      // Prefer chat messages read from storage so the task is self-contained.
+      // Fall back to the payload's chatHistory if aiChat is absent or empty.
+      if (storage.aiChat && storage.aiChat.length > 0) {
+        architectChat = storage.aiChat
+          .filter((m) => !m.source || m.source === "architect")
+          .map((m) => ({ role: m.role, content: m.content }));
+        if (architectChat.length === 0) {
+          architectChat = chatHistory;
+        }
+      }
+
+      logger.info("Canvas data loaded from Liveblocks", {
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+        chatMessages: architectChat.length,
+      });
+    } catch (err) {
+      logger.warn("Could not read Liveblocks storage, proceeding with empty canvas", {
+        error: String(err),
+      });
+    }
+
+    if (nodes.length === 0) {
+      logger.warn("No canvas nodes found — spec will be generated from chat context only");
+    }
 
     metadata.set("status", "generating");
-    metadata.set("progress", 0);
+    metadata.set("progress", 25);
 
     const nodesText =
       nodes.length > 0
@@ -106,8 +144,8 @@ export const generateSpec = schemaTask({
         : "No connections defined yet.";
 
     const chatContext =
-      chatHistory.length > 0
-        ? chatHistory
+      architectChat.length > 0
+        ? architectChat
             .map((m) => `${m.role === "user" ? "User" : "AI"}: ${m.content}`)
             .join("\n\n")
         : "No prior conversation.";
@@ -123,9 +161,10 @@ ${edgesText}
 ## Design Conversation Context
 ${chatContext}`;
 
-    metadata.set("progress", 25);
-
-    logger.info("Calling OpenRouter for spec generation");
+    logger.info("Calling OpenRouter for spec generation", {
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+    });
 
     const agent = new Agent({
       model: "anthropic/claude-3.5-haiku",
@@ -141,6 +180,17 @@ ${chatContext}`;
 
     metadata.set("progress", 75);
     metadata.set("status", "persisting");
+
+    const projectExists = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { id: true },
+    });
+
+    if (!projectExists) {
+      throw new Error(
+        `Project ${projectId} not found in database. Verify DATABASE_URL is correctly set in the Trigger.dev environment variables dashboard.`,
+      );
+    }
 
     const specId = randomUUID();
     const blob = await put(

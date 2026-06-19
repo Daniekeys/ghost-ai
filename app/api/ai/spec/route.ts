@@ -10,8 +10,6 @@ const bodySchema = z.object({
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .optional()
     .default([]),
-  nodes: z.array(z.unknown()).optional().default([]),
-  edges: z.array(z.unknown()).optional().default([]),
 });
 
 export async function POST(request: Request) {
@@ -28,20 +26,17 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  const { roomId, chatHistory, nodes, edges } = body;
+  const { roomId, chatHistory } = body;
 
   const access = await checkProjectAccess(roomId, userId, null);
   if (!access) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handle = await tasks.trigger("generate-spec", {
     projectId: access.project.id,
     roomId,
     chatHistory,
-    nodes,
-    edges,
   });
 
   await prisma.taskRun.create({
