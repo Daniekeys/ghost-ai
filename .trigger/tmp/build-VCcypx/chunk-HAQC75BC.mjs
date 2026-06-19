@@ -22090,8 +22090,8 @@ var Liveblocks = class {
       Authorization: `Bearer ${this.#secret}`,
       "Content-Type": "application/json"
     };
-    const fetch = await fetchPolyfill();
-    const res = await fetch(url3, {
+    const fetch2 = await fetchPolyfill();
+    const res = await fetch2(url3, {
       method: "POST",
       headers,
       body: JSON.stringify(json2),
@@ -22106,8 +22106,8 @@ var Liveblocks = class {
       Authorization: `Bearer ${this.#secret}`,
       "Content-Type": "application/json"
     };
-    const fetch = await fetchPolyfill();
-    const res = await fetch(url3, {
+    const fetch2 = await fetchPolyfill();
+    const res = await fetch2(url3, {
       method: "PATCH",
       headers,
       body: JSON.stringify(json2),
@@ -22122,8 +22122,8 @@ var Liveblocks = class {
       Authorization: `Bearer ${this.#secret}`,
       "Content-Type": "application/octet-stream"
     };
-    const fetch = await fetchPolyfill();
-    const res = await fetch(url3, {
+    const fetch2 = await fetchPolyfill();
+    const res = await fetch2(url3, {
       method: "PUT",
       headers,
       body,
@@ -22137,8 +22137,8 @@ var Liveblocks = class {
     const headers = {
       Authorization: `Bearer ${this.#secret}`
     };
-    const fetch = await fetchPolyfill();
-    const res = await fetch(url3, {
+    const fetch2 = await fetchPolyfill();
+    const res = await fetch2(url3, {
       method: "DELETE",
       headers,
       signal: options2?.signal
@@ -22151,8 +22151,8 @@ var Liveblocks = class {
     const headers = {
       Authorization: `Bearer ${this.#secret}`
     };
-    const fetch = await fetchPolyfill();
-    const res = await fetch(url3, {
+    const fetch2 = await fetchPolyfill();
+    const res = await fetch2(url3, {
       method: "GET",
       headers,
       signal: options2?.signal
@@ -23818,8 +23818,8 @@ var Liveblocks = class {
    * @returns The id of the created file knowledge source.
    */
   async createFileKnowledgeSource(params, options2) {
-    const fetch = await fetchPolyfill();
-    const res = await fetch(
+    const fetch2 = await fetchPolyfill();
+    const res = await fetch2(
       urljoin(
         this.#baseUrl,
         url2`/v2/ai/copilots/${params.copilotId}/knowledge/file/${params.file.name}`
@@ -24228,35 +24228,336 @@ async function ensureLiveblocksRoom(roomId) {
 }
 __name(ensureLiveblocksRoom, "ensureLiveblocksRoom");
 
+// lib/model-providers.ts
+init_esm();
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+var PROVIDER_REGISTRY = {
+  gemini: {
+    name: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    apiKeyEnv: "GEMINI_API_KEY",
+    model: "gemini-2.5-flash",
+    responseFormat: "json_schema"
+  },
+  groq: {
+    name: "groq",
+    baseUrl: "https://api.groq.com/openai/v1",
+    apiKeyEnv: "GROQ_API_KEY",
+    model: "llama-3.3-70b-versatile",
+    responseFormat: "json_object"
+  },
+  "openrouter:openai/gpt-oss-120b:free": {
+    name: "openrouter:openai/gpt-oss-120b:free",
+    baseUrl: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    model: "openai/gpt-oss-120b:free",
+    responseFormat: "none"
+  },
+  "openrouter:qwen/qwen3-coder:free": {
+    name: "openrouter:qwen/qwen3-coder:free",
+    baseUrl: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    model: "qwen/qwen3-coder:free",
+    responseFormat: "none"
+  },
+  "openrouter:qwen/qwen3-next-80b-a3b-instruct:free": {
+    name: "openrouter:qwen/qwen3-next-80b-a3b-instruct:free",
+    baseUrl: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    model: "qwen/qwen3-next-80b-a3b-instruct:free",
+    responseFormat: "none"
+  },
+  "openrouter:openrouter/free": {
+    name: "openrouter:openrouter/free",
+    baseUrl: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    model: "openrouter/free",
+    responseFormat: "none"
+  }
+};
+var DEFAULT_PROVIDER_CHAIN_NAMES = [
+  "gemini",
+  "groq",
+  "openrouter:openai/gpt-oss-120b:free",
+  "openrouter:qwen/qwen3-coder:free",
+  "openrouter:qwen/qwen3-next-80b-a3b-instruct:free",
+  "openrouter:openrouter/free"
+];
+var PROVIDER_CHAIN = (() => {
+  const override = process.env.MODEL_PROVIDER_CHAIN;
+  const names = override ? override.split(",").map((s) => s.trim()).filter(Boolean) : [...DEFAULT_PROVIDER_CHAIN_NAMES];
+  const resolved = names.map((n) => PROVIDER_REGISTRY[n]).filter((p) => Boolean(p));
+  if (resolved.length > 0) return resolved;
+  return DEFAULT_PROVIDER_CHAIN_NAMES.map((n) => PROVIDER_REGISTRY[n]);
+})();
+var BACKOFF_DELAYS_MS = [2e3, 5e3, 1e4];
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+__name(sleep, "sleep");
+function stripJsonFences(text) {
+  const trimmed = text.trim();
+  const fenceMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return fenceMatch ? fenceMatch[1].trim() : trimmed;
+}
+__name(stripJsonFences, "stripJsonFences");
+function extractBalancedJson(text) {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === "{") {
+      depth += 1;
+    } else if (ch === "}") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+__name(extractBalancedJson, "extractBalancedJson");
+async function callProvider(provider, apiKey, messages, jsonSchema) {
+  const body = {
+    model: provider.model,
+    messages
+  };
+  if (jsonSchema) {
+    if (provider.responseFormat === "json_schema") {
+      body.response_format = {
+        type: "json_schema",
+        json_schema: { name: jsonSchema.name, schema: jsonSchema.schema, strict: true }
+      };
+    } else if (provider.responseFormat === "json_object") {
+      body.response_format = { type: "json_object" };
+    }
+  }
+  let lastError;
+  for (let attempt = 0; attempt <= BACKOFF_DELAYS_MS.length; attempt++) {
+    try {
+      const res = await fetch(`${provider.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+      const text = await res.text().catch(() => "");
+      const retryable = res.status === 429 || res.status >= 500;
+      if (retryable && attempt < BACKOFF_DELAYS_MS.length) {
+        await sleep(BACKOFF_DELAYS_MS[attempt]);
+        continue;
+      }
+      throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
+    } catch (err) {
+      lastError = err;
+      const isHttpError = err instanceof Error && err.message.startsWith("HTTP ");
+      if (!isHttpError && attempt < BACKOFF_DELAYS_MS.length) {
+        await sleep(BACKOFF_DELAYS_MS[attempt]);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+__name(callProvider, "callProvider");
+async function generateJson({
+  systemPrompt,
+  userPrompt,
+  jsonSchema,
+  validate,
+  onAttempt,
+  onFallback,
+  maxTotalAttempts = 6
+}) {
+  let totalAttempts = 0;
+  let lastError = "no providers were available";
+  for (let providerIndex = 0; providerIndex < PROVIDER_CHAIN.length; providerIndex++) {
+    const provider = PROVIDER_CHAIN[providerIndex];
+    const apiKey = process.env[provider.apiKeyEnv];
+    if (!apiKey) {
+      onAttempt?.({
+        provider: provider.name,
+        model: provider.model,
+        status: "error",
+        error: `missing ${provider.apiKeyEnv}`
+      });
+      continue;
+    }
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+    let providerFailed = false;
+    for (let retry = 0; retry < 2; retry++) {
+      if (totalAttempts >= maxTotalAttempts) {
+        throw new Error(
+          `Exceeded maximum of ${maxTotalAttempts} completion attempts across all providers. Last error: ${lastError}`
+        );
+      }
+      totalAttempts += 1;
+      let response;
+      try {
+        response = await callProvider(provider, apiKey, messages, jsonSchema);
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
+        onAttempt?.({
+          provider: provider.name,
+          model: provider.model,
+          status: "error",
+          error: lastError
+        });
+        providerFailed = true;
+        break;
+      }
+      const choice = response.choices?.[0];
+      const content = choice?.message?.content ?? "";
+      const finishReason = choice?.finish_reason ?? "unknown";
+      onAttempt?.({
+        provider: provider.name,
+        model: provider.model,
+        status: "ok",
+        finishReason,
+        contentPreview: content.slice(0, 300)
+      });
+      const stripped = stripJsonFences(content);
+      const jsonText = extractBalancedJson(stripped) ?? stripped;
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (err) {
+        lastError = `JSON parse error: ${err instanceof Error ? err.message : String(err)}`;
+        if (retry === 0) {
+          messages.push({ role: "assistant", content });
+          messages.push({
+            role: "user",
+            content: `Your previous response was not valid JSON (${lastError}). Respond again with ONLY the corrected JSON object, no markdown fences and no extra text.`
+          });
+          continue;
+        }
+        providerFailed = true;
+        break;
+      }
+      const validation = validate(parsed);
+      if (validation.success) return validation.data;
+      lastError = validation.error;
+      if (retry === 0) {
+        messages.push({ role: "assistant", content });
+        messages.push({
+          role: "user",
+          content: `Your JSON did not match the required schema: ${lastError}. Respond again with ONLY the corrected JSON object, no markdown fences and no extra text.`
+        });
+        continue;
+      }
+      providerFailed = true;
+    }
+    if (providerFailed && providerIndex < PROVIDER_CHAIN.length - 1) {
+      onFallback?.({
+        from: provider.name,
+        to: PROVIDER_CHAIN[providerIndex + 1].name,
+        reason: lastError
+      });
+    }
+  }
+  throw new Error(`All providers in the chain failed. Last error: ${lastError}`);
+}
+__name(generateJson, "generateJson");
+async function generateText({
+  systemPrompt,
+  userPrompt,
+  onAttempt,
+  onFallback,
+  maxTotalAttempts = 6
+}) {
+  let totalAttempts = 0;
+  let lastError = "no providers were available";
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt }
+  ];
+  for (let providerIndex = 0; providerIndex < PROVIDER_CHAIN.length; providerIndex++) {
+    const provider = PROVIDER_CHAIN[providerIndex];
+    const apiKey = process.env[provider.apiKeyEnv];
+    if (!apiKey) {
+      onAttempt?.({
+        provider: provider.name,
+        model: provider.model,
+        status: "error",
+        error: `missing ${provider.apiKeyEnv}`
+      });
+      continue;
+    }
+    if (totalAttempts >= maxTotalAttempts) {
+      throw new Error(
+        `Exceeded maximum of ${maxTotalAttempts} completion attempts across all providers. Last error: ${lastError}`
+      );
+    }
+    totalAttempts += 1;
+    let response;
+    try {
+      response = await callProvider(provider, apiKey, messages);
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      onAttempt?.({
+        provider: provider.name,
+        model: provider.model,
+        status: "error",
+        error: lastError
+      });
+      if (providerIndex < PROVIDER_CHAIN.length - 1) {
+        onFallback?.({ from: provider.name, to: PROVIDER_CHAIN[providerIndex + 1].name, reason: lastError });
+      }
+      continue;
+    }
+    const choice = response.choices?.[0];
+    const content = (choice?.message?.content ?? "").trim();
+    const finishReason = choice?.finish_reason ?? "unknown";
+    onAttempt?.({
+      provider: provider.name,
+      model: provider.model,
+      status: content ? "ok" : "error",
+      finishReason,
+      contentPreview: content.slice(0, 300)
+    });
+    if (content) return content;
+    lastError = "empty response content";
+    if (providerIndex < PROVIDER_CHAIN.length - 1) {
+      onFallback?.({ from: provider.name, to: PROVIDER_CHAIN[providerIndex + 1].name, reason: lastError });
+    }
+  }
+  throw new Error(`All providers in the chain failed. Last error: ${lastError}`);
+}
+__name(generateText, "generateText");
+
 export {
-  NEVER,
-  $ZodError,
-  prettifyError,
-  toJSONSchema,
-  iso_exports,
-  parse2 as parse,
-  safeParse2 as safeParse,
-  string2 as string,
-  number2 as number,
-  int,
-  boolean2 as boolean,
-  any,
-  unknown,
-  date3 as date,
-  array,
-  object,
-  union,
-  record,
-  _enum2 as _enum,
-  literal,
-  nullable,
-  lazy,
-  custom,
-  coerce_exports,
   external_exports,
   LiveMap,
   LiveObject,
   getLiveblocksClient,
-  ensureLiveblocksRoom
+  ensureLiveblocksRoom,
+  generateJson,
+  generateText
 };
-//# sourceMappingURL=chunk-XL44DV7L.mjs.map
+//# sourceMappingURL=chunk-HAQC75BC.mjs.map

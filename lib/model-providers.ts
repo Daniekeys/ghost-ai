@@ -178,13 +178,18 @@ export async function callProvider(
     messages,
   };
 
-  if (provider.responseFormat === "json_schema" && jsonSchema) {
-    body.response_format = {
-      type: "json_schema",
-      json_schema: { name: jsonSchema.name, schema: jsonSchema.schema, strict: true },
-    };
-  } else if (provider.responseFormat === "json_object") {
-    body.response_format = { type: "json_object" };
+  // Only force a JSON response format when the caller actually wants JSON
+  // (i.e. passed a schema). Plain-text callers (generateText) must not have
+  // providers like Groq coerced into emitting a JSON object instead of prose.
+  if (jsonSchema) {
+    if (provider.responseFormat === "json_schema") {
+      body.response_format = {
+        type: "json_schema",
+        json_schema: { name: jsonSchema.name, schema: jsonSchema.schema, strict: true },
+      };
+    } else if (provider.responseFormat === "json_object") {
+      body.response_format = { type: "json_object" };
+    }
   }
 
   let lastError: unknown;
@@ -361,6 +366,102 @@ export async function generateJson<T>({
         to: PROVIDER_CHAIN[providerIndex + 1].name,
         reason: lastError,
       });
+    }
+  }
+
+  throw new Error(`All providers in the chain failed. Last error: ${lastError}`);
+}
+
+export type GenerateTextAttemptLog = {
+  provider: string;
+  model: string;
+  status: "ok" | "error";
+  finishReason?: string;
+  contentPreview?: string;
+  error?: string;
+};
+
+/**
+ * Walks the provider chain, asking each for a plain-text completion (no JSON
+ * schema coercion). Falls back to the next provider on error or empty
+ * content. Used for free-form prose output, e.g. Markdown spec generation.
+ */
+export async function generateText({
+  systemPrompt,
+  userPrompt,
+  onAttempt,
+  onFallback,
+  maxTotalAttempts = 6,
+}: {
+  systemPrompt: string;
+  userPrompt: string;
+  onAttempt?: (log: GenerateTextAttemptLog) => void;
+  onFallback?: (info: { from: string; to: string; reason: string }) => void;
+  maxTotalAttempts?: number;
+}): Promise<string> {
+  let totalAttempts = 0;
+  let lastError = "no providers were available";
+
+  const messages: ChatMessage[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+
+  for (let providerIndex = 0; providerIndex < PROVIDER_CHAIN.length; providerIndex++) {
+    const provider = PROVIDER_CHAIN[providerIndex];
+    const apiKey = process.env[provider.apiKeyEnv];
+
+    if (!apiKey) {
+      onAttempt?.({
+        provider: provider.name,
+        model: provider.model,
+        status: "error",
+        error: `missing ${provider.apiKeyEnv}`,
+      });
+      continue;
+    }
+
+    if (totalAttempts >= maxTotalAttempts) {
+      throw new Error(
+        `Exceeded maximum of ${maxTotalAttempts} completion attempts across all providers. Last error: ${lastError}`,
+      );
+    }
+    totalAttempts += 1;
+
+    let response: ChatCompletionResponse;
+    try {
+      response = await callProvider(provider, apiKey, messages);
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      onAttempt?.({
+        provider: provider.name,
+        model: provider.model,
+        status: "error",
+        error: lastError,
+      });
+      if (providerIndex < PROVIDER_CHAIN.length - 1) {
+        onFallback?.({ from: provider.name, to: PROVIDER_CHAIN[providerIndex + 1].name, reason: lastError });
+      }
+      continue;
+    }
+
+    const choice = response.choices?.[0];
+    const content = (choice?.message?.content ?? "").trim();
+    const finishReason = choice?.finish_reason ?? "unknown";
+
+    onAttempt?.({
+      provider: provider.name,
+      model: provider.model,
+      status: content ? "ok" : "error",
+      finishReason,
+      contentPreview: content.slice(0, 300),
+    });
+
+    if (content) return content;
+
+    lastError = "empty response content";
+    if (providerIndex < PROVIDER_CHAIN.length - 1) {
+      onFallback?.({ from: provider.name, to: PROVIDER_CHAIN[providerIndex + 1].name, reason: lastError });
     }
   }
 

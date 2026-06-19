@@ -3,7 +3,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { put } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
-import { Agent } from "@/lib/openrouter-agent";
+import { generateText } from "@/lib/model-providers";
 import { getLiveblocksClient } from "@/lib/liveblocks";
 
 const chatMessageSchema = z.object({
@@ -161,22 +161,17 @@ ${edgesText}
 ## Design Conversation Context
 ${chatContext}`;
 
-    logger.info("Calling OpenRouter for spec generation", {
+    logger.info("Calling model provider chain for spec generation", {
       nodeCount: nodes.length,
       edgeCount: edges.length,
     });
 
-    const agent = new Agent({
-      model: "anthropic/claude-3.5-haiku",
-      instructions: SPEC_SYSTEM_PROMPT,
-      appTitle: "Spec Generator",
+    const specContent = await generateText({
+      systemPrompt: SPEC_SYSTEM_PROMPT,
+      userPrompt,
+      onAttempt: (log) => logger.info("Model provider attempt", log),
+      onFallback: (info) => logger.warn("Falling back to next model provider", info),
     });
-
-    const specContent = await agent.send(userPrompt);
-
-    if (!specContent) {
-      throw new Error("OpenRouter returned an empty response");
-    }
 
     metadata.set("progress", 75);
     metadata.set("status", "persisting");

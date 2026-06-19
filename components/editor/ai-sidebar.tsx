@@ -701,7 +701,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
           }
         }}
       >
-        <DialogContent className="max-w-2xl h-[75vh] flex flex-col gap-0 p-0 bg-surface border-surface-border">
+        <DialogContent className="max-w-2xl lg:min-w-190 h-[75vh] flex flex-col gap-0 p-0 bg-surface border-surface-border">
           <DialogHeader className="px-6 pt-5 pb-4 border-b border-surface-border shrink-0">
             <DialogTitle className="text-sm font-semibold text-copy-primary">
               spec-{previewSpec?.id}.md

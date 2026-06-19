@@ -1,5 +1,5 @@
 {
-  "configPath": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger.config.mjs",
+  "configPath": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-VCcypx\\Documents\\ghost-ai\\trigger.config.mjs",
   "customConditions": [
   ],
   "prompts": [
@@ -10,7 +10,7 @@
   "runtimeVersion": "25.8.0",
   "tasks": [
     {
-      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger\\design-agent.mjs",
+      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-VCcypx\\Documents\\ghost-ai\\trigger\\design-agent.mjs",
       "filePath": "trigger/design-agent.ts",
       "id": "design-agent",
       "maxDuration": 300,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger\\generate-design.mjs",
+      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-VCcypx\\Documents\\ghost-ai\\trigger\\generate-design.mjs",
       "filePath": "trigger/generate-design.ts",
       "id": "generate-design",
       "maxDuration": 300,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\Documents\\ghost-ai\\trigger\\generate-spec.mjs",
+      "entryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-VCcypx\\Documents\\ghost-ai\\trigger\\generate-spec.mjs",
       "filePath": "trigger/generate-spec.ts",
       "id": "generate-spec",
       "maxDuration": 300,
@@ -91,9 +91,9 @@
     }
   ],
   "timings": {
-    "trigger/design-agent.ts": 43.572100000000034,
-    "trigger/generate-design.ts": 1.2685999999999922,
-    "trigger/generate-spec.ts": 277.7932
+    "trigger/design-agent.ts": 120.30150000000003,
+    "trigger/generate-design.ts": 2.1376999999999953,
+    "trigger/generate-spec.ts": 182.72090000000003
   },
-  "workerEntryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-B3tmAb\\AppData\\Local\\npm-cache\\_npx\\f51a09bd0abf5f10\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs"
+  "workerEntryPoint": "C:\\Users\\PC\\Documents\\ghost-ai\\.trigger\\tmp\\build-VCcypx\\AppData\\Local\\npm-cache\\_npx\\f51a09bd0abf5f10\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs"
 }
