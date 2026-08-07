@@ -15,6 +15,7 @@ const JSON_SCHEMA = {
       message: { type: "string" },
     },
     required: ["ok", "message"],
+    additionalProperties: false,
   },
 } as const;
 

@@ -39,7 +39,7 @@ const designSchema = z.object({
       id: z.string(),
       source: z.string(),
       target: z.string(),
-      label: z.string().optional(),
+      label: z.string().nullable().optional(),
     }),
   ),
 });
@@ -75,6 +75,7 @@ const WRITE_DESIGN_PARAMS = {
           },
         },
         required: ["id", "label", "shape", "x", "y", "colorIndex"],
+        additionalProperties: false,
       },
     },
     edges: {
@@ -86,13 +87,15 @@ const WRITE_DESIGN_PARAMS = {
           id: { type: "string", description: "Unique edge ID" },
           source: { type: "string", description: "Source node ID" },
           target: { type: "string", description: "Target node ID" },
-          label: { type: "string", description: "Short connection label (optional)" },
+          label: { type: ["string", "null"], description: "Short connection label, or null if none" },
         },
-        required: ["id", "source", "target"],
+        required: ["id", "source", "target", "label"],
+        additionalProperties: false,
       },
     },
   },
   required: ["nodes", "edges"],
+  additionalProperties: false,
 } as const;
 
 const AI_USER_ID = "ai-canvarch";
@@ -146,6 +149,7 @@ export const designAgent = task({
     logger.info("PAYLOAD RECEIVED", { payload });
     logger.info("ENV CHECK", {
       hasLiveblocksSecret: !!process.env.LIVEBLOCKS_SECRET_KEY,
+      hasOpenAiKey: !!process.env.OPENAI_API_KEY,
       hasGeminiKey: !!process.env.GEMINI_API_KEY,
       hasGroqKey: !!process.env.GROQ_API_KEY,
       hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
