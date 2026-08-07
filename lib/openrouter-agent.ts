@@ -19,14 +19,26 @@ export const DEFAULT_MODEL_CHAIN: readonly string[] = [
   "openrouter/free",
 ];
 
+/** OpenAI model id used for the primary (non-OpenRouter) completion path. */
+const OPENAI_MODEL = "gpt-5.6-luna";
+
+/** Sentinel model id in MODEL_CHAIN that routes directly to the OpenAI API instead of OpenRouter. */
+const OPENAI_SENTINEL = "openai:gpt-5.6-luna";
+
 export const MODEL_CHAIN: string[] = (() => {
   const override = process.env.OPENROUTER_MODEL_CHAIN;
-  if (!override) return [...DEFAULT_MODEL_CHAIN];
-  const parsed = override
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return parsed.length > 0 ? parsed : [...DEFAULT_MODEL_CHAIN];
+  let base: string[];
+  if (!override) {
+    base = [...DEFAULT_MODEL_CHAIN];
+  } else {
+    const parsed = override
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    base = parsed.length > 0 ? parsed : [...DEFAULT_MODEL_CHAIN];
+  }
+  // Try the user's own OpenAI key first, falling back to the OpenRouter chain above.
+  return process.env.OPENAI_API_KEY ? [OPENAI_SENTINEL, ...base] : base;
 })();
 
 /** Hard cap on total LLM completion calls across all models for one send(). */
@@ -69,6 +81,16 @@ function stripJsonFences(text: string): string {
   return fenceMatch ? fenceMatch[1].trim() : trimmed;
 }
 
+/** Error from the raw-fetch OpenAI completion path (see requestOpenAICompletion). */
+class OpenAICompletionError extends Error {
+  status?: number;
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "OpenAICompletionError";
+    this.status = status;
+  }
+}
+
 /** Determines whether an error from the OpenRouter SDK should trigger a model fallback. */
 function classifyError(err: unknown): { retryable: boolean; reason: string } {
   if (err instanceof OpenRouterError) {
@@ -79,6 +101,11 @@ function classifyError(err: unknown): { retryable: boolean; reason: string } {
   if (err instanceof HTTPClientError) {
     // Network-level errors (timeouts, connection failures, etc.)
     return { retryable: true, reason: `${err.name}: ${err.message}` };
+  }
+  if (err instanceof OpenAICompletionError) {
+    // Any OpenAI failure (bad key, rate limit, malformed request, network drop) falls
+    // back to the OpenRouter chain rather than crashing send().
+    return { retryable: true, reason: `OpenAI HTTP ${err.status ?? "?"}: ${err.message}` };
   }
   return { retryable: true, reason: err instanceof Error ? err.message : String(err) };
 }
@@ -152,10 +179,121 @@ export class Agent extends EventEmitter<AgentEventMap> {
     return this.modelIndex < this.models.length - 1;
   }
 
+  /** Translates internal history (OpenRouter SDK camelCase shape) into OpenAI's wire format. */
+  private buildOpenAIMessages(): Record<string, unknown>[] {
+    const messages: Record<string, unknown>[] = [{ role: "system", content: this.instructions }];
+
+    for (const msg of this.history) {
+      if (msg.role === "assistant") {
+        const entry: Record<string, unknown> = { role: "assistant", content: msg.content ?? null };
+        if (msg.toolCalls && msg.toolCalls.length > 0) {
+          entry.tool_calls = msg.toolCalls.map((tc) => ({
+            id: tc.id,
+            type: "function",
+            function: { name: tc.function.name, arguments: tc.function.arguments },
+          }));
+        }
+        messages.push(entry);
+      } else if (msg.role === "tool") {
+        messages.push({ role: "tool", content: msg.content, tool_call_id: msg.toolCallId });
+      } else {
+        messages.push({ role: msg.role, content: msg.content });
+      }
+    }
+
+    return messages;
+  }
+
+  /** Issues one streaming completion request directly against the OpenAI API. */
+  private async requestOpenAICompletion(
+    toolDefs: ChatFunctionToolFunction[] | undefined,
+  ): Promise<CompletionResult> {
+    this.emit("thinking:start");
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: this.buildOpenAIMessages(),
+        ...(toolDefs ? { tools: toolDefs } : {}),
+        stream: true,
+      }),
+    });
+
+    if (!res.ok || !res.body) {
+      const text = await res.text().catch(() => "");
+      throw new OpenAICompletionError(text.slice(0, 300) || res.statusText, res.status);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let content = "";
+    let sawChunk = false;
+    const accumCalls: Record<number, AccumulatedToolCall> = {};
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice("data:".length).trim();
+        if (!data || data === "[DONE]") continue;
+
+        sawChunk = true;
+        const chunk = JSON.parse(data);
+        const delta = chunk.choices?.[0]?.delta;
+
+        if (delta?.content) {
+          content += delta.content;
+          this.emit("stream:delta", delta.content);
+        }
+
+        if (delta?.tool_calls) {
+          for (const tc of delta.tool_calls as Array<{
+            index: number;
+            id?: string;
+            function?: { name?: string; arguments?: string };
+          }>) {
+            if (!accumCalls[tc.index]) {
+              accumCalls[tc.index] = { id: tc.id ?? "", name: tc.function?.name ?? "", argsJson: "" };
+            }
+            if (tc.id) accumCalls[tc.index].id = tc.id;
+            if (tc.function?.name) accumCalls[tc.index].name = tc.function.name;
+            accumCalls[tc.index].argsJson += tc.function?.arguments ?? "";
+          }
+        }
+      }
+    }
+
+    this.emit("stream:end");
+    this.emit("thinking:end");
+
+    if (!sawChunk) {
+      throw new Error("Empty response: no completion chunks received");
+    }
+
+    return { content, toolCalls: Object.values(accumCalls) };
+  }
+
   /** Issues one streaming completion request against the current model. */
   private async requestCompletion(
     toolDefs: ChatFunctionToolFunction[] | undefined,
   ): Promise<CompletionResult> {
+    if (this.currentModel === OPENAI_SENTINEL) {
+      return this.requestOpenAICompletion(toolDefs);
+    }
+
     this.emit("thinking:start");
 
     const stream = await this.client.chat.send({
@@ -165,8 +303,11 @@ export class Agent extends EventEmitter<AgentEventMap> {
         model: this.currentModel,
         // Native OpenRouter fallback: try the remaining models in the chain
         // for this request before we even need to apply our own retry loop.
-        // OpenRouter caps this array at 3 entries.
-        models: this.models.slice(this.modelIndex, this.modelIndex + 3),
+        // OpenRouter caps this array at 3 entries. Excludes the OpenAI sentinel,
+        // which OpenRouter has no knowledge of.
+        models: this.models
+          .slice(this.modelIndex, this.modelIndex + 3)
+          .filter((m) => m !== OPENAI_SENTINEL),
         messages: [
           { role: "system", content: this.instructions },
           ...this.history,

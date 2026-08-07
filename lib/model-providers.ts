@@ -25,6 +25,13 @@ export type ProviderConfig = {
  * single request function can serve all of them.
  */
 const PROVIDER_REGISTRY: Record<string, ProviderConfig> = {
+  openai: {
+    name: "openai",
+    baseUrl: "https://api.openai.com/v1",
+    apiKeyEnv: "OPENAI_API_KEY",
+    model: "gpt-5.6-luna",
+    responseFormat: "json_schema",
+  },
   gemini: {
     name: "gemini",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
@@ -69,8 +76,9 @@ const PROVIDER_REGISTRY: Record<string, ProviderConfig> = {
   },
 };
 
-/** Default fallback order: free-tier Gemini -> free-tier Groq -> OpenRouter free models. */
+/** Default fallback order: OpenAI -> free-tier Gemini -> free-tier Groq -> OpenRouter free models. */
 export const DEFAULT_PROVIDER_CHAIN_NAMES: readonly string[] = [
+  "openai",
   "gemini",
   "groq",
   "openrouter:openai/gpt-oss-120b:free",
