@@ -234,7 +234,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
       const isSuccess = status === "COMPLETED"
       appendChatMessage({
         id: `ai-${Date.now()}`,
-        sender: { id: "ai-ghost", name: "Ghost AI" },
+        sender: { id: "ai-canvarch", name: "Canvarch" },
         role: "assistant",
         content: isSuccess
           ? "Done! The canvas has been updated with the generated architecture. Feel free to edit and refine it."
@@ -272,9 +272,9 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
     if (!projectId) {
       appendChatMessage({
         id: `err-${Date.now()}`,
-        sender: { id: "ai-ghost", name: "Ghost AI" },
+        sender: { id: "ai-canvarch", name: "Canvarch" },
         role: "assistant",
-        content: "Open a project before asking Ghost AI to generate an architecture.",
+        content: "Open a project before asking Canvarch to generate an architecture.",
         timestamp: Date.now(),
         source: "architect",
       })
@@ -315,7 +315,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
       const message = err instanceof Error ? err.message : "Something went wrong."
       appendChatMessage({
         id: `err-${Date.now()}`,
-        sender: { id: "ai-ghost", name: "Ghost AI" },
+        sender: { id: "ai-canvarch", name: "Canvarch" },
         role: "assistant",
         content: message,
         timestamp: Date.now(),
@@ -391,7 +391,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
               AI Workspace
             </h2>
             <p className="text-xs text-copy-muted leading-tight">
-              Collaborate with Ghost AI
+              Collaborate with Canvarch
             </p>
           </div>
         </div>
@@ -445,10 +445,10 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-semibold text-copy-primary">
-                    Ask Ghost AI
+                    Ask Canvarch
                   </p>
                   <p className="text-xs text-copy-muted mt-1 leading-relaxed">
-                    Describe a system and Ghost AI will design the architecture
+                    Describe a system and Canvarch will design the architecture
                     for you.
                   </p>
                 </div>
@@ -487,7 +487,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
                     <span className="text-xs text-ai-text">
                       {validFeed?.type === "thinking"
                         ? validFeed.message
-                        : "Ghost AI is thinking…"}
+                        : "Canvarch is thinking…"}
                     </span>
                   </div>
                 )}
@@ -502,7 +502,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
               <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-elevated border border-brand/30 shrink-0">
                 <div className="size-1.5 rounded-full bg-brand animate-pulse shrink-0" />
                 <span className="text-xs text-brand font-medium leading-tight truncate">
-                  {validFeed.message || "Ghost AI is thinking…"}
+                  {validFeed.message || "Canvarch is thinking…"}
                 </span>
               </div>
             )}
@@ -512,7 +512,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
               onKeyDown={handleKeyDown}
               placeholder={
                 inputDisabled
-                  ? "Waiting for Ghost AI…"
+                  ? "Waiting for Canvarch…"
                   : "Describe an architecture…"
               }
               disabled={inputDisabled}

@@ -1,8 +1,8 @@
-# Ghost AI — Product Intelligence Brief
+# Canvarch — Product Intelligence Brief
 
-## What Is Ghost AI?
+## What Is Canvarch?
 
-**Ghost AI is a real-time collaborative system architecture design platform powered by AI.** It's where engineers, architects, and teams describe what they want to build in plain English — and an AI agent turns that description into a structured, visual system design diagram on a shared canvas. Teams can collaborate live on the diagram, and when they're done, the app generates a professional Markdown technical specification document from the final architecture.
+**Canvarch is a real-time collaborative system architecture design platform powered by AI.** It's where engineers, architects, and teams describe what they want to build in plain English — and an AI agent turns that description into a structured, visual system design diagram on a shared canvas. Teams can collaborate live on the diagram, and when they're done, the app generates a professional Markdown technical specification document from the final architecture.
 
 Think of it as **Figma meets architecture diagramming, with an AI co-designer built in.**
 
@@ -51,7 +51,7 @@ Think of it as **Figma meets architecture diagramming, with an AI co-designer bu
 ### 1. AI Architecture Generation
 
 - User describes a system in plain English ("Build me a microservices e-commerce platform with event-driven order processing")
-- Ghost AI generates the full node/edge diagram directly onto the shared canvas
+- Canvarch generates the full node/edge diagram directly onto the shared canvas
 - Runs as a durable background job — no timeouts, handles complex architectures
 - All collaborators see the AI "thinking" in real time (presence indicators, status feed)
 
@@ -114,7 +114,7 @@ Think of it as **Figma meets architecture diagramming, with an AI co-designer bu
 
 ## SaaS Packaging
 
-### Company Name: Ghost AI
+### Company Name: Canvarch
 
 **Tagline:** *"Describe it. Design it. Ship it."*
 
@@ -133,7 +133,7 @@ Think of it as **Figma meets architecture diagramming, with an AI co-designer bu
 
 ## Competitive Positioning
 
-| Competitor | Weakness | How Ghost AI Wins |
+| Competitor | Weakness | How Canvarch Wins |
 |---|---|---|
 | **Lucidchart / draw.io** | No AI, no real-time collaboration, fully manual | AI-first generation + real-time sync + spec output |
 | **Eraser.io** | AI diagrams but limited collaboration depth | Better live collaboration, richer canvas controls |
@@ -179,6 +179,6 @@ Think of it as **Figma meets architecture diagramming, with an AI co-designer bu
 
 ## Summary
 
-Ghost AI is an AI-powered, real-time collaborative system design tool that lets engineering teams go from a plain-English description to a finished visual architecture diagram and downloadable technical specification — in minutes instead of hours. It targets software engineers and technical teams who need to design, communicate, and document systems fast.
+Canvarch is an AI-powered, real-time collaborative system design tool that lets engineering teams go from a plain-English description to a finished visual architecture diagram and downloadable technical specification — in minutes instead of hours. It targets software engineers and technical teams who need to design, communicate, and document systems fast.
 
-The SaaS opportunity sits at the intersection of Figma (design collaboration), Lucidchart (architecture diagramming), and GitHub Copilot (AI assistance) — and none of those tools cover the full workflow end-to-end the way Ghost AI does.
+The SaaS opportunity sits at the intersection of Figma (design collaboration), Lucidchart (architecture diagramming), and GitHub Copilot (AI assistance) — and none of those tools cover the full workflow end-to-end the way Canvarch does.

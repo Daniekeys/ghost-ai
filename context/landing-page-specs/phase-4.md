@@ -1,4 +1,4 @@
-# Ghost AI — Phase 4: Templates, Polish & Final Responsive Pass
+# Canvarch — Phase 4: Templates, Polish & Final Responsive Pass
 
 > **Instructions for Claude Code**: This is the final phase. Phases 1–3 built the design system, landing page, auth, editor home, and workspace. This phase adds the template picker, all micro-interactions, loading/empty/error states, toast notifications, and the full mobile-responsive audit. Do not regress anything from prior phases. Write every component completely.
 
@@ -278,7 +278,7 @@ Toast content: icon (20px) + content column (title in 14px weight 600 + optional
 
 ## File 3 — GeneratingOverlay (`components/workspace/GeneratingOverlay.tsx`)
 
-A subtle overlay on the canvas while Ghost AI is generating architecture. Does NOT block the canvas completely — allows viewing but not editing.
+A subtle overlay on the canvas while Canvarch is generating architecture. Does NOT block the canvas completely — allows viewing but not editing.
 
 ```css
 .generating-overlay {
@@ -319,7 +319,7 @@ animation: ambient-pulse 2s ease-in-out infinite;
 }
 ```
 
-5. **Ghost AI cursor on canvas**: A special ghost-themed cursor that drifts around the canvas area during generation:
+5. **Canvarch cursor on canvas**: A special animated cursor that drifts around the canvas area during generation:
 ```css
 .ai-cursor {
   position: absolute;
@@ -338,7 +338,7 @@ animation: ambient-pulse 2s ease-in-out infinite;
 }
 ```
 
-Cursor visual: a small indigo arrow SVG (14px) + pill label "Ghost AI" with the spinning dot:
+Cursor visual: a small indigo arrow SVG (14px) + pill label "Canvarch" with the spinning dot:
 ```css
 background: var(--accent-ai-dim); border: 1px solid var(--accent-ai);
 border-radius: 99px; padding: 3px 10px; font-size: 11px; color: var(--accent-ai-text);
@@ -490,8 +490,8 @@ const steps: OnboardingStep[] = [
   {
     target: '.ai-sidebar',
     position: 'left',
-    title: 'Meet Ghost AI',
-    description: 'Type a system description here and Ghost AI will generate your architecture live on the canvas.',
+    title: 'Meet Canvarch',
+    description: 'Type a system description here and Canvarch will generate your architecture live on the canvas.',
   },
   {
     target: '.shape-panel',
@@ -549,7 +549,7 @@ Bottom row: step counter ("1 of 3") + "Next" button (small, cyan) + "Skip tour" 
 }
 ```
 
-Store completion in `localStorage`: `ghost_ai_onboarding_complete`. Don't show on subsequent visits.
+Store completion in `localStorage`: `canvarch_onboarding_complete`. Don't show on subsequent visits.
 
 ---
 
@@ -559,7 +559,7 @@ Complete responsive overrides. Apply these in addition to existing component sty
 
 ```css
 /* ===================================
-   GHOST AI — MOBILE RESPONSIVE STYLES
+   CANVARCH — MOBILE RESPONSIVE STYLES
    Applied at these breakpoints:
    - sm: 640px
    - md: 768px  
