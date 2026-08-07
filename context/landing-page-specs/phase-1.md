@@ -1,4 +1,4 @@
-# Ghost AI — Phase 1: Foundation + Landing Page
+# Canvarch — Phase 1: Foundation + Landing Page
 
 > **Instructions for Claude Code**: This is Phase 1 of a 4-phase build. Complete everything in this prompt before moving to Phase 2. Do not truncate code or use placeholder comments. Write every line.
 
@@ -6,7 +6,7 @@
 
 ## What You Are Building
 
-The complete marketing landing page for **Ghost AI** — a real-time collaborative system design workspace where engineers describe software architecture in plain English and an AI agent generates it live on a shared canvas.
+The complete marketing landing page for **Canvarch** — a real-time collaborative system design workspace where engineers describe software architecture in plain English and an AI agent generates it live on a shared canvas.
 
 This phase establishes the entire design system and builds the full public landing page (`/`).
 
@@ -15,7 +15,7 @@ This phase establishes the entire design system and builds the full public landi
 ## Design System — Implement First in `globals.css`
 
 ```css
-/* GHOST AI — GLOBAL DESIGN TOKENS */
+/* CANVARCH — GLOBAL DESIGN TOKENS */
 :root {
   --bg-base: #080809;
   --bg-surface: #111114;
@@ -103,9 +103,9 @@ Build a single `page.tsx` (Next.js App Router) or `index.html`. Sections in orde
 
 **Scroll behavior**: When `scrollY > 20`, transition border to `var(--border-subtle)` and add `box-shadow: 0 1px 24px rgba(0,0,0,0.6)`.
 
-**Left**: Ghost AI wordmark.
-- A minimal SVG ghost icon (20×20px): a rounded rectangle body with two small bumps at the bottom, filled `var(--text-muted)`. Inline SVG.
-- "Ghost" in `var(--text-primary)`, "AI" in `var(--accent-primary)`. Font size 16px, weight 600. Letter-spacing -0.3px.
+**Left**: Canvarch wordmark.
+- A minimal SVG logo icon (20×20px): a rounded rectangle body with two small bumps at the bottom, filled `var(--text-muted)`. Inline SVG.
+- "Canvarch" in `var(--text-primary)`. Font size 16px, weight 600. Letter-spacing -0.3px.
 
 **Center** (desktop only, hidden below 768px): Nav links — "Features", "Templates", "Pricing", "Docs". Font size 14px, `var(--text-secondary)`. Hover: `var(--text-primary)`. Active underline: 1px `var(--accent-primary)`.
 
@@ -151,7 +151,7 @@ max-width: 560px;
 line-height: 1.65;
 margin: 24px auto;
 ```
-Text: "Describe your system in plain English. Ghost AI generates the architecture live — and every collaborator sees it happen in real time."
+Text: "Describe your system in plain English. Canvarch generates the architecture live — and every collaborator sees it happen in real time."
 
 ### CTA Row
 Two buttons, centered, gap 12px:
@@ -178,7 +178,7 @@ A dark rounded container below the CTAs, `max-width: 900px`, `margin: 64px auto 
 
 **Top bar** (mock browser chrome): 40px height, `var(--bg-elevated)`, flex row with:
 - 3 small circles (12px, colors `#ff5f57`, `#ffbd2e`, `#28ca42`, 8px apart)
-- A centered URL pill: `var(--bg-subtle)`, text "ghost.ai/workspace/my-system", 12px `var(--text-muted)`
+- A centered URL pill: `var(--bg-subtle)`, text "canvarch.ai/workspace/my-system", 12px `var(--text-muted)`
 
 **Canvas area** (below top bar): `height: 360px` (desktop) / `200px` (mobile), `background: var(--bg-base)`, dot-grid pattern via CSS:
 ```css
@@ -220,7 +220,7 @@ background: var(--accent-ai-dim); border: 1px solid var(--accent-ai);
 border-radius: 99px; padding: 6px 12px; font-size: 12px;
 color: var(--accent-ai-text); display: flex; align-items: center; gap: 6px;
 ```
-A spinning ring loader (8px, `var(--accent-ai)` border, one side transparent) + "Ghost AI is thinking..."
+A spinning ring loader (8px, `var(--accent-ai)` border, one side transparent) + "Canvarch is thinking..."
 
 ### Load Animation Sequence
 On page load, animate hero elements with staggered `opacity: 0 → 1` + `translateY(16px → 0)`:
@@ -287,7 +287,7 @@ Use `grid-template-columns: repeat(3, 1fr)` with `grid-column: span 2` for wide 
 1. **AI Architecture Generation** (`grid-column: span 2`)  
    Icon: Sparkles  
    Title: "AI Architecture Generation"  
-   Description: "Type a prompt. Ghost AI generates nodes, edges, and service topology directly on the shared canvas — while every collaborator watches it appear live."  
+   Description: "Type a prompt. Canvarch generates nodes, edges, and service topology directly on the shared canvas — while every collaborator watches it appear live."  
    Visual extra: A small mock prompt input at the bottom of the card: dark input field, placeholder "Describe a microservices e-commerce system...", cyan "Generate" button. Non-functional, pure CSS.
 
 2. **Real-time Collaboration** (`grid-column: span 1`)  
@@ -348,7 +348,7 @@ Each step:
 - Description: 15px, `var(--text-secondary)`, line-height 1.6
 
 Step content:
-1. **Describe your system** — "Type what you're building in plain English. Ghost AI interprets architecture intent, not just words — services, databases, queues, and connections."
+1. **Describe your system** — "Type what you're building in plain English. Canvarch interprets architecture intent, not just words — services, databases, queues, and connections."
 2. **Watch it build live** — "Nodes and edges appear on the shared canvas in real time. Every collaborator sees the design form as the AI generates it."
 3. **Generate the spec** — "One click exports your canvas as a structured Markdown technical specification. Ready to commit, share, or review."
 
@@ -411,7 +411,7 @@ Card content:
 - Bottom: avatar circle (40px, initials, `var(--bg-subtle)` background) + name (14px, font-weight 600) + role (13px, `var(--text-muted)`)
 
 **Data**:
-1. Quote: "Ghost AI cut our architecture review time from two hours to twenty minutes. We just pull up the canvas and everyone is aligned." — Sarah K., Staff Engineer
+1. Quote: "Canvarch cut our architecture review time from two hours to twenty minutes. We just pull up the canvas and everyone is aligned." — Sarah K., Staff Engineer
 2. Quote: "I've tried every diagramming tool. This is the first one that actually understands what I'm trying to build, not just what I'm drawing." — Marcus T., CTO
 3. Quote: "The spec generation alone is worth it. We finally have real technical documentation instead of outdated Confluence pages." — Priya M., Engineering Lead
 
@@ -510,7 +510,7 @@ background: radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0,200,212,0.08) 0%
 **4-column grid** (desktop), `max-width: 1100px`, `margin: 0 auto`. Mobile: 2 columns then 1 column.
 
 **Col 1 — Brand**:
-- Ghost AI logo + tagline: "The canvas that thinks with you."
+- Canvarch logo + tagline: "The canvas that thinks with you."
 - Social icons row: Twitter/X, GitHub, Discord — 20px, `var(--text-muted)`, hover `var(--text-primary)`, gap 16px
 
 **Col 2 — Product**: Features, Templates, Pricing, Changelog
@@ -522,7 +522,7 @@ background: radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0,200,212,0.08) 0%
 Link styles: 14px, `var(--text-muted)`, hover `var(--text-primary)`, no underline, transition 150ms. Column headers: 13px, `var(--text-faint)`, font-weight 600, letter-spacing 0.5px, uppercase, `margin-bottom: 16px`.
 
 **Bottom row** (divider + `padding-top: 32px`, `border-top: 1px solid var(--border-default)`):
-- Left: "© 2025 Ghost AI. All rights reserved."
+- Left: "© 2025 Canvarch. All rights reserved."
 - Right: Privacy · Terms · Security
 
 Both in 13px, `var(--text-faint)`.

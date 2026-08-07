@@ -50,8 +50,8 @@ const COLORS = {
   neutral:{ fill: "#1F1F1F", text: "#EDEDED" },
 };
 
-// ─── Ghost icon ──────────────────────────────────────────────────────────────
-function GhostIcon() {
+// ─── Logo icon ──────────────────────────────────────────────────────────────
+function LogoIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <rect x="3" y="2" width="14" height="13" rx="7" fill="var(--text-muted)" />
@@ -125,10 +125,9 @@ function Navbar() {
             textDecoration: "none",
           }}
         >
-          <GhostIcon />
+          <LogoIcon />
           <span style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-0.3px" }}>
-            <span style={{ color: "var(--text-primary)" }}>Ghost</span>
-            <span style={{ color: "var(--accent-primary)" }}>AI</span>
+            <span style={{ color: "var(--text-primary)" }}>Canvarch</span>
           </span>
         </Link>
 
@@ -246,8 +245,7 @@ function Navbar() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
             <span style={{ fontSize: "16px", fontWeight: 600 }}>
-              <span style={{ color: "var(--text-primary)" }}>Ghost</span>
-              <span style={{ color: "var(--accent-primary)" }}>AI</span>
+              <span style={{ color: "var(--text-primary)" }}>Canvarch</span>
             </span>
             <button
               onClick={() => setMobileOpen(false)}
@@ -393,7 +391,7 @@ function HeroCanvas() {
             color: "var(--text-muted)",
           }}
         >
-          ghost.ai/workspace/my-system
+          canvarch.ai/workspace/my-system
         </div>
       </div>
 
@@ -552,7 +550,7 @@ function HeroCanvas() {
               flexShrink: 0,
             }}
           />
-          Ghost AI is thinking...
+          Canvarch is thinking...
         </div>
       </div>
 
@@ -638,7 +636,7 @@ function Hero() {
           animation: "fade-up 0.6s ease 200ms both",
         }}
       >
-        Describe your system in plain English. Ghost AI generates the architecture live —
+        Describe your system in plain English. Canvarch generates the architecture live —
         and every collaborator sees it happen in real time.
       </p>
 
@@ -1021,7 +1019,7 @@ function FeatureBentoGrid() {
         className="features-grid"
         style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}
       >
-        <Card wide icon={<Sparkles size={20} />} title="AI Architecture Generation" desc="Type a prompt. Ghost AI generates nodes, edges, and service topology directly on the shared canvas — while every collaborator watches it appear live." extra={aiExtra} delay={0} />
+        <Card wide icon={<Sparkles size={20} />} title="AI Architecture Generation" desc="Type a prompt. Canvarch generates nodes, edges, and service topology directly on the shared canvas — while every collaborator watches it appear live." extra={aiExtra} delay={0} />
         <Card icon={<Users size={20} />} title="Real-time Collaboration" desc="Live cursors, presence avatars, and shared canvas state. Everyone sees every change the instant it happens." extra={collabExtra} delay={50} />
         <Card wide icon={<LayoutGrid size={20} />} title="Starter Templates" desc="Import a production-ready architecture. Microservices, CI/CD pipelines, event-driven systems — fully wired and ready to extend." extra={templatesExtra} delay={100} />
         <Card icon={<FileCode size={20} />} title="One-click Spec Generation" desc="Turn your canvas into a Markdown technical specification. Stored, versioned, and downloadable." extra={specExtra} delay={150} />
@@ -1049,7 +1047,7 @@ function HowItWorks() {
     {
       n: 1,
       title: "Describe your system",
-      desc: "Type what you're building in plain English. Ghost AI interprets architecture intent, not just words — services, databases, queues, and connections.",
+      desc: "Type what you're building in plain English. Canvarch interprets architecture intent, not just words — services, databases, queues, and connections.",
     },
     {
       n: 2,
@@ -1309,7 +1307,7 @@ function TemplatesShowcase() {
 function Testimonials() {
   const cards = [
     {
-      quote: "Ghost AI cut our architecture review time from two hours to twenty minutes. We just pull up the canvas and everyone is aligned.",
+      quote: "Canvarch cut our architecture review time from two hours to twenty minutes. We just pull up the canvas and everyone is aligned.",
       name: "Sarah K.",
       role: "Staff Engineer",
       initials: "SK",
@@ -1694,10 +1692,9 @@ function Footer() {
         {/* Brand col */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <GhostIcon />
+            <LogoIcon />
             <span style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-0.3px" }}>
-              <span style={{ color: "var(--text-primary)" }}>Ghost</span>
-              <span style={{ color: "var(--accent-primary)" }}>AI</span>
+              <span style={{ color: "var(--text-primary)" }}>Canvarch</span>
             </span>
           </div>
           <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "0 0 20px", lineHeight: 1.6 }}>
@@ -1763,7 +1760,7 @@ function Footer() {
         }}
       >
         <span style={{ fontSize: "13px", color: "var(--text-faint)" }}>
-          © 2025 Ghost AI. All rights reserved.
+          © 2025 Canvarch. All rights reserved.
         </span>
         <div style={{ display: "flex", gap: "20px" }}>
           {["Privacy", "Terms", "Security"].map((l) => (

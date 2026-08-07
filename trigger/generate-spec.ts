@@ -43,7 +43,7 @@ type LiveblocksStorageJson = {
   }>;
 };
 
-const SPEC_SYSTEM_PROMPT = `You are Ghost AI, an expert software architect and technical writer. Generate a comprehensive Markdown technical specification based on the provided system architecture diagram and conversation context.
+const SPEC_SYSTEM_PROMPT = `You are Canvarch, an expert software architect and technical writer. Generate a comprehensive Markdown technical specification based on the provided system architecture diagram and conversation context.
 
 Structure the document with these sections:
 # <Project Name> — Technical Specification

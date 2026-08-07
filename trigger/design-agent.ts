@@ -95,10 +95,10 @@ const WRITE_DESIGN_PARAMS = {
   required: ["nodes", "edges"],
 } as const;
 
-const AI_USER_ID = "ai-ghost";
+const AI_USER_ID = "ai-canvarch";
 const AI_COLOR = "#6457f9";
 
-const SYSTEM_PROMPT = `You are Ghost AI, an expert system architect. Generate a clear, well-organized system architecture diagram from the user's description.
+const SYSTEM_PROMPT = `You are Canvarch, an expert system architect. Generate a clear, well-organized system architecture diagram from the user's description.
 
 Layout rules:
 - Space nodes with at least 200px between centers
@@ -164,7 +164,7 @@ export const designAgent = task({
 
     await setAiPresence(liveblocks, roomId, true);
 
-    await broadcastStatus(liveblocks, roomId, runId, "AI_STATUS", "Ghost AI is analyzing your request…");
+    await broadcastStatus(liveblocks, roomId, runId, "AI_STATUS", "Canvarch is analyzing your request…");
 
     try {
       const design = await generateJson<Design>({
@@ -177,7 +177,7 @@ export const designAgent = task({
         },
         onFallback: (info) => {
           logger.warn("Falling back to next model provider", info);
-          broadcastStatus(liveblocks, roomId, runId, "AI_STATUS", "Ghost AI is switching to a backup model…");
+          broadcastStatus(liveblocks, roomId, runId, "AI_STATUS", "Canvarch is switching to a backup model…");
         },
       });
 
@@ -207,7 +207,7 @@ export const designAgent = task({
         stack: error instanceof Error ? error.stack : error,
       });
 
-      await broadcastStatus(liveblocks, roomId, runId, "AI_ERROR", "Ghost AI encountered an error. Please try again.");
+      await broadcastStatus(liveblocks, roomId, runId, "AI_ERROR", "Canvarch encountered an error. Please try again.");
 
       throw error;
     } finally {
@@ -300,7 +300,7 @@ async function setAiPresence(
     await liveblocks.setPresence(roomId, {
       userId: AI_USER_ID,
       data: { cursor: null, thinking },
-      userInfo: { name: "Ghost AI", avatar: "", color: AI_COLOR },
+      userInfo: { name: "Canvarch", avatar: "", color: AI_COLOR },
       ttl: thinking ? 300 : 5,
     });
   } catch (err) {

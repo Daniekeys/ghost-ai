@@ -1,4 +1,4 @@
-# Ghost AI — Phase 2: Auth Pages + Editor Home
+# Canvarch — Phase 2: Auth Pages + Editor Home
 
 > **Instructions for Claude Code**: This is Phase 2. Phase 1 established the design system and landing page. Apply the exact same CSS custom properties and font stack here. Do not redefine the design system — import `globals.css` from Phase 1. Write every component completely.
 
@@ -53,12 +53,11 @@ box-shadow: 0 1px 24px rgba(0,0,0,0.6);
 **Layout**: `display: flex; align-items: center; justify-content: space-between; padding: 0 24px; max-width: 1400px; margin: 0 auto;`
 
 ### Left — Logo
-Inline SVG ghost icon (20×20px): a simplified ghost shape:
+Inline SVG logo icon (20×20px): a simplified mark:
 - A rounded rect body (width 16, height 18, rx 8) filling `var(--text-muted)`
-- Two small circle cutouts at the bottom for the ghost tail bumps
+- Two small circle cutouts at the bottom
 
-"Ghost" text: `var(--text-primary)`, 16px, weight 600, letter-spacing -0.3px  
-"AI" text: `var(--accent-primary)`, same size/weight  
+"Canvarch" text: `var(--text-primary)`, 16px, weight 600, letter-spacing -0.3px  
 Gap 6px between icon and text. Wrapped in a `<Link href="/">`.
 
 ### Center — Nav Links (hidden below 768px)
@@ -149,7 +148,7 @@ Mobile (below 768px): `grid-template-columns: 1fr`, left panel hidden.
 
 `background: var(--bg-elevated)`, `border-right: 1px solid var(--border-default)`, `position: relative`, `overflow: hidden`.
 
-**Top-left logo**: Ghost AI logo mark (same as navbar), `position: absolute; top: 24px; left: 32px`.
+**Top-left logo**: Canvarch logo mark (same as navbar), `position: absolute; top: 24px; left: 32px`.
 
 **Center content**: `display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 80px 48px; text-align: center;`
 
@@ -420,7 +419,7 @@ Same backdrop + modal styles as CreateProjectModal.
 
 **Share link section** (`margin-top: 24px`):
 - Label: "Project link" (13px, `var(--text-secondary)`)
-- Row: URL input (read-only, `var(--bg-surface)`, `color: var(--text-muted)`, showing "ghost.ai/workspace/abc-123") + "Copy link" button (outlined, 13px). On copy: button flashes "Copied! ✓" in `var(--state-success)` for 2s.
+- Row: URL input (read-only, `var(--bg-surface)`, `color: var(--text-muted)`, showing "canvarch.ai/workspace/abc-123") + "Copy link" button (outlined, 13px). On copy: button flashes "Copied! ✓" in `var(--state-success)` for 2s.
 
 **Collaborators section** (`margin-top: 28px`):
 - Title: "People with access" (14px, weight 600)

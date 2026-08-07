@@ -88,7 +88,7 @@ export default function SignInPage() {
           <div className="flex items-center gap-2 mb-14">
             <span className="w-1.5 h-1.5 rounded-full bg-brand inline-block" />
             <span className="text-[10.5px] font-medium text-copy-muted tracking-[0.16em] uppercase select-none">
-              Ghost AI
+              Canvarch
             </span>
           </div>
 

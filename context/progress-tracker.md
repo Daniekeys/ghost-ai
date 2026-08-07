@@ -157,7 +157,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - Feature 20: AI Sidebar Shell
   - `components/editor/ai-sidebar.tsx` — extracted AI sidebar into its own component; accepts `isOpen` and `onClose` props controlled by the parent workspace context
-  - Header: `AI Workspace` title, `Collaborate with Ghost AI` subtitle, bot icon (`text-ai-text`), and close button aligned right
+  - Header: `AI Workspace` title, `Collaborate with Canvarch` subtitle, bot icon (`text-ai-text`), and close button aligned right
   - Two-tab layout using shadcn `Tabs`: `AI Architect` and `Specs`; active tab styled with `bg-accent text-accent-foreground`, inactive with `text-copy-muted`
   - AI Architect tab: scrollable chat area with empty state (bot icon, description, three starter prompt chips styled as `bg-subtle text-ai-text` pills); user messages right-aligned (`bg-accent-dim border-2 border-brand/50 text-copy-primary`); assistant messages left-aligned (`bg-elevated border border-surface-border text-ai-text`); auto-resizing textarea (min 72px, max 160px), Enter submits, Shift+Enter newline; Send button (`bg-brand text-base`)
   - Specs tab: `Generate Spec` button (`bg-brand text-base`), demo spec card (`bg-elevated border-surface-border`) with file icon, title, snippet, and disabled Download action

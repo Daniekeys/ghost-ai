@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ghost AI",
-  description: "Ghost AI",
+  title: "Canvarch",
+  description: "Canvarch",
 };
 
 export default function RootLayout({

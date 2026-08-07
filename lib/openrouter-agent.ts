@@ -97,7 +97,7 @@ export class Agent extends EventEmitter<AgentEventMap> {
     model,
     models,
     instructions,
-    appTitle = "Ghost AI",
+    appTitle = "Canvarch",
   }: {
     /** A single model to use (legacy). Ignored if `models` is provided. */
     model?: string;

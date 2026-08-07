@@ -1,8 +1,8 @@
-# Ghost AI — Application Overview
+# Canvarch — Application Overview
 
-## What Is Ghost AI?
+## What Is Canvarch?
 
-Ghost AI is a real-time collaborative system design workspace. Users describe a software architecture in plain English, an AI agent maps that system onto a shared visual canvas, collaborators refine the design together in real time, and the application generates a technical Markdown specification from the resulting graph.
+Canvarch is a real-time collaborative system design workspace. Users describe a software architecture in plain English, an AI agent maps that system onto a shared visual canvas, collaborators refine the design together in real time, and the application generates a technical Markdown specification from the resulting graph.
 
 It is built for engineers and teams who want to go from idea to documented architecture without switching between tools or writing boilerplate spec documents by hand.
 
@@ -14,7 +14,7 @@ It is built for engineers and teams who want to go from idea to documented archi
 2. User creates or selects a project from the editor home.
 3. User enters the project workspace (a dedicated room URL).
 4. User optionally imports a prebuilt starter system design template into the canvas.
-5. User prompts Ghost AI to generate or extend the architecture.
+5. User prompts Canvarch to generate or extend the architecture.
 6. The AI agent generates nodes and edges directly into the shared collaborative canvas.
 7. Collaborators edit, resize, recolor, and connect nodes in real time.
 8. User triggers spec generation from the AI sidebar.
@@ -39,7 +39,7 @@ It is built for engineers and teams who want to go from idea to documented archi
 - Full-viewport real-time canvas powered by Liveblocks and React Flow.
 - Live cursors with collaborator names and color-coded pointers.
 - Presence avatar stack (top-right) showing all active room members with photo or initials fallback.
-- AI presence indicator — a spinning cursor badge when Ghost AI is thinking.
+- AI presence indicator — a spinning cursor badge when Canvarch is thinking.
 - Node creation by drag-and-drop from the shape panel toolbar.
 - Six node shapes: rectangle, diamond, circle, pill, cylinder, hexagon.
 - Node inline label editing via double-click with commit on Enter or blur.
